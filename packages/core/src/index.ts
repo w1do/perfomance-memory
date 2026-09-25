@@ -23,9 +23,19 @@ export { buildPreferenceFilter, normalizeFolderPath } from './qdrant/filters.js'
 export { PREFERENCE_INDEXES, FOLDER_INDEXES, indexTypeName } from './qdrant/schema.js';
 export { Store } from './qdrant/store.js';
 export { tokenize } from './text/tokenize.js';
+export { STT_TERMS, canonicalTarget, detectTargets } from './text/glossary.js';
 export { bm25Document, bm25Query } from './text/bm25.js';
 export { createBackup, backupCollections, type BackupManifest } from './backup/snapshot.js';
 export { listBackups, pruneBackups, latestBackupAge, readManifest } from './backup/retention.js';
 export { restoreBackup } from './backup/restore.js';
 export { createQdrant } from './qdrant/client.js';
 export { waitForQdrant } from './qdrant/setup.js';
+export {
+  oauth,
+  pkceMatches,
+  ACCESS_TTL_S,
+  REFRESH_TTL_S,
+  type OAuthClient,
+  type OAuthCode,
+  type OAuthGrant,
+} from './oauth/tokens.js';

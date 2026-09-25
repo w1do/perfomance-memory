@@ -42,7 +42,8 @@ export interface TaskContext {
 
 /** Everything the core needs from the model provider. Tests substitute a fake. */
 export interface AiProvider {
-  transcribe(audio: Buffer, filename: string, mimeType: string): Promise<string>;
+  /** prompt — подсказка Whisper: как писать термины, папки и проекты пользователя. */
+  transcribe(audio: Buffer, filename: string, mimeType: string, prompt?: string): Promise<string>;
   /** Returns raw JSON from the model; the caller validates and normalises it. */
   enrich(input: EnrichInput): Promise<unknown>;
   decideConflict(input: ConflictInput, candidates: ConflictCandidate[]): Promise<ConflictDecision>;

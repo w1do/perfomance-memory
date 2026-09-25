@@ -117,6 +117,14 @@ export function sanitizePath(path: string[]): string[] {
     .map((s) => s.slice(0, 80));
 }
 
+/**
+ * Правило всегда лежит в листе «Люблю» / «Не люблю»: неверный лист меняется на соседний,
+ * а если путь кончается папкой темы (модель, редактор, перетаскивание) — лист добавляется.
+ */
+export function withPolarityLeaf(path: string[], polarity: Polarity): string[] {
+  return siblingPolarityPath(path, polarity) ?? [...path, polarityFolderName(polarity)];
+}
+
 /** Makes the polarity leaf match the polarity (the model sometimes mixes them up). */
 export function alignPolarityLeaf(path: string[], polarity: Polarity): string[] {
   return siblingPolarityPath(path, polarity) ?? path;

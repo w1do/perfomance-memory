@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import type { Core } from '@preference-memory/core';
+import { STT_TERMS, flattenTree, type Core } from '@preference-memory/core';
 
 const EXT_BY_MIME: Record<string, string> = {
   'audio/webm': 'webm',
@@ -13,6 +13,14 @@ const EXT_BY_MIME: Record<string, string> = {
   'audio/aac': 'm4a',
 };
 const ALLOWED_EXT = new Set(['webm', 'ogg', 'oga', 'mp3', 'm4a', 'mp4']);
+
+/** Подсказка Whisper: термины словаря + названия папок и проектов, чтобы они распознавались верно. */
+async function sttPrompt(core: Core): Promise<string> {
+  const names = flattenTree(await core.folders.tree())
+    .map((n) => n.name)
+    .filter((n) => !['Люблю', 'Не люблю'].includes(n));
+  return [...new Set([...STT_TERMS, ...names])].join(', ').slice(0, 800);
+}
 
 export function transcribeRoutes(app: FastifyInstance, core: Core): void {
   app.post('/api/transcribe', async (req, reply) => {
@@ -31,7 +39,12 @@ export function transcribeRoutes(app: FastifyInstance, core: Core): void {
       return reply.status(413).send({ error: `Файл больше ${core.config.MAX_AUDIO_MB} МБ` });
     }
     if (!buffer.length) return reply.status(400).send({ error: 'Пустая запись' });
-    const text = await core.ai.transcribe(buffer, `recording.${ext}`, mime || `audio/${ext}`);
+    const text = await core.ai.transcribe(
+      buffer,
+      `recording.${ext}`,
+      mime || `audio/${ext}`,
+      await sttPrompt(core),
+    );
     return { text };
   });
 }

@@ -62,7 +62,18 @@ export function PreferenceCard({ p, index = 0 }: { p: Preference; index?: number
           </button>
         </span>
       </div>
-      {p.details && <p className="m-0 text-[15px] leading-relaxed text-text-2">{p.details}</p>}
+      {p.details ? (
+        <p className="m-0 text-[15px] leading-relaxed text-text-2">{p.details}</p>
+      ) : (
+        p.raw_text.trim() !== p.statement.trim() && (
+          <p
+            className="m-0 text-caption text-muted italic"
+            title="Пояснения нет — показана исходная фраза"
+          >
+            «{p.raw_text}»
+          </p>
+        )
+      )}
       <ConstraintList items={p.constraints} />
       {(p.applies_to.length > 0 || p.tags.length > 0) && (
         <div className="flex flex-wrap items-center gap-1.5">

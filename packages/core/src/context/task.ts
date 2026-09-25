@@ -1,38 +1,45 @@
+/**
+ * Главный вход агента (get_context_for_task): по задаче определяет домены и проект, сужает по индексам и отдаёт:
+ * все правила названного проекта (без обрезки top_k), ранжированные правила доменов (top_k), все жёсткие
+ * ограничения этих доменов и число правил, которые подошли, но не показаны (omitted) — агент видит, что отрезано.
+ */
 import type { AiProvider, TaskContext } from '../ai/provider.js';
 import type { FolderService } from '../folders/service.js';
 import { sameName } from '../folders/tree.js';
 import type { Logger } from '../logger.js';
-import { mentions } from '../text/mentions.js';
 import type { PreferenceService } from '../preferences/service.js';
+import { mentions } from '../text/mentions.js';
 import type { PreferencePayload, ScoredPreference } from '../types.js';
 
 export interface TaskContextResult {
   context: TaskContext;
+  /** все правила названного проекта, сильные первыми */
+  project_rules: PreferencePayload[];
+  /** ранжированные правила доменов задачи (вне проекта), не больше top_k */
   preferences: ScoredPreference[];
-  /** constraint-bearing rules of the detected domains that did not make the ranked top */
+  /** правила доменов с ограничениями, не попавшие в ранжированный список */
   hard_constraints: PreferencePayload[];
+  /** сколько правил доменов подошло, но не показано */
+  omitted: number;
 }
 
-/**
- * Main agent entry: detects domain/project of the task, narrows by metadata indexes,
- * ranks with hybrid search and always adds every hard constraint of those domains.
- */
-export async function contextForTask(
-  deps: { ai: AiProvider; prefs: PreferenceService; folders: FolderService; log: Logger },
-  input: { task: string; applies_to?: string[] | undefined; top_k: number },
-): Promise<TaskContextResult> {
+type Deps = { ai: AiProvider; prefs: PreferenceService; folders: FolderService; log: Logger };
+
+const byImportance = (a: PreferencePayload, b: PreferencePayload) =>
+  b.strength - a.strength || b.updated_at.localeCompare(a.updated_at);
+
+async function classify(deps: Deps, task: string): Promise<TaskContext> {
   const [facets, projectNodes] = await Promise.all([deps.prefs.facets(), deps.folders.projects()]);
   const domains = (facets.domain ?? []).map((d) => d.value);
   const projects = projectNodes.map((p) => p.name);
-
-  let ctx: TaskContext = { domains: [], project: null, applies_to: [] };
   try {
-    const raw = await deps.ai.classifyTask(input.task, domains, projects);
-    ctx = {
-      domains: (raw.domains ?? []).filter((d) => domains.includes(d)),
-      // a project counts only if the task names it — the model must not attach one on its own
+    const raw = await deps.ai.classifyTask(task, domains, projects);
+    return {
+      domains: (raw.domains ?? []).filter((d) => domains.includes(d) && d !== 'project'),
+      // проект засчитывается, только если он назван в задаче — модель не приписывает его сама
       project:
-        projects.find((p) => raw.project && sameName(p, raw.project) && mentions(input.task, p)) ??
+        projects.find((p) => raw.project && sameName(p, raw.project) && mentions(task, p)) ??
+        projects.find((p) => mentions(task, p)) ??
         null,
       applies_to: (raw.applies_to ?? []).map((a) => a.toLowerCase()),
     };
@@ -41,36 +48,44 @@ export async function contextForTask(
       { err: (err as Error).message },
       'task classification failed, searching everywhere',
     );
+    return {
+      domains: [],
+      project: projects.find((p) => mentions(task, p)) ?? null,
+      applies_to: [],
+    };
   }
+}
 
-  const scopes: { domain?: string[]; project?: string }[] = [];
-  if (ctx.domains.length) scopes.push({ domain: ctx.domains });
-  if (ctx.project) scopes.push({ project: ctx.project });
-  if (!scopes.length) scopes.push({});
-
+export async function contextForTask(
+  deps: Deps,
+  input: { task: string; applies_to?: string[] | undefined; top_k: number },
+): Promise<TaskContextResult> {
+  const ctx = await classify(deps, input.task);
   const applies = input.applies_to?.length ? input.applies_to : undefined;
-  const seen = new Map<string, ScoredPreference>();
-  for (const scope of scopes) {
-    const hits = await deps.prefs.search(
-      input.task,
-      { ...scope, applies_to: applies },
-      input.top_k,
-    );
-    for (const h of hits) if (!seen.has(h.preference.id)) seen.set(h.preference.id, h);
-  }
-  const preferences = [...seen.values()]
-    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
-    .slice(0, input.top_k);
 
-  const hard: PreferencePayload[] = [];
-  if (ctx.domains.length || ctx.project) {
-    for (const scope of scopes) {
-      const all = await deps.prefs.all({ ...scope, applies_to: applies });
-      for (const p of all) {
-        if (p.constraints.length && !seen.has(p.id) && !hard.some((h) => h.id === p.id))
-          hard.push(p);
-      }
-    }
-  }
-  return { context: ctx, preferences, hard_constraints: hard };
+  const project_rules = ctx.project
+    ? (await deps.prefs.all({ project: ctx.project, applies_to: applies })).sort(byImportance)
+    : [];
+  const shown = new Set(project_rules.map((p) => p.id));
+
+  // Домены задачи; без доменов и без проекта — поиск по всей памяти.
+  const scope = ctx.domains.length ? { domain: ctx.domains } : ctx.project ? null : {};
+  if (!scope)
+    return { context: ctx, project_rules, preferences: [], hard_constraints: [], omitted: 0 };
+
+  const hits = await deps.prefs.search(
+    input.task,
+    { ...scope, applies_to: applies },
+    input.top_k + shown.size,
+  );
+  const preferences = hits.filter((h) => !shown.has(h.preference.id)).slice(0, input.top_k);
+  preferences.forEach((h) => shown.add(h.preference.id));
+
+  const inScope = await deps.prefs.all({ ...scope, applies_to: applies });
+  const hard_constraints = ctx.domains.length
+    ? inScope.filter((p) => p.constraints.length && !shown.has(p.id)).sort(byImportance)
+    : [];
+  hard_constraints.forEach((p) => shown.add(p.id));
+  const omitted = inScope.filter((p) => !shown.has(p.id)).length;
+  return { context: ctx, project_rules, preferences, hard_constraints, omitted };
 }

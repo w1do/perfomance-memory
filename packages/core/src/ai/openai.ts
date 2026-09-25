@@ -40,13 +40,19 @@ export class OpenAiProvider implements AiProvider {
     });
   }
 
-  async transcribe(audio: Buffer, filename: string, mimeType: string): Promise<string> {
+  async transcribe(
+    audio: Buffer,
+    filename: string,
+    mimeType: string,
+    prompt?: string,
+  ): Promise<string> {
     const started = Date.now();
     const file = await toFile(audio, filename, { type: mimeType });
     const res = await this.client.audio.transcriptions.create({
       file,
       model: this.config.OPENAI_STT_MODEL,
       language: this.config.STT_LANGUAGE,
+      ...(prompt ? { prompt } : {}),
     });
     this.log.info({ op: 'stt', ms: Date.now() - started, bytes: audio.length }, 'transcribed');
     return res.text.trim();

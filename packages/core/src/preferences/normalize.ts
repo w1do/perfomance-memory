@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { alignPolarityLeaf, polarityFolderName, sameName, sanitizePath } from '../folders/tree.js';
-import { mentions } from '../text/mentions.js';
+import { sanitizePath, withPolarityLeaf } from '../folders/tree.js';
+import { cleanTags, guardProject, guardTargets } from './guards.js';
 import {
   PROJECTS_ROOT,
   constraintSchema,
@@ -71,34 +71,6 @@ export function constraintMetrics(constraints: Constraint[]): string[] {
   );
 }
 
-/** Topic folder for a domain when the model filed a rule under a project nobody named. */
-const DOMAIN_TOPIC: Record<string, string> = {
-  programming: 'Программирование',
-  ai_assistants: 'ИИ-ассистенты',
-  fishing: 'Рыбалка',
-  travel: 'Путешествия',
-  food: 'Еда',
-  communication: 'Общение',
-};
-
-/** Targets that describe scope rather than a named thing, so they need not appear in the phrase. */
-const ABSTRACT_TARGETS = new Set(['me', 'any_ai']);
-const POLARITY_TAGS = new Set([
-  'люблю',
-  'не люблю',
-  'нравится',
-  'не нравится',
-  'предпочтения',
-  'предпочтение',
-  'like',
-  'dislike',
-]);
-const squash = (s: string) =>
-  s
-    .toLowerCase()
-    .replace(/ё/g, 'е')
-    .replace(/[^\p{L}\p{N}]+/gu, '');
-
 /**
  * Validates and cleans raw model output. Never adds information the model did not return.
  * With sourceText, targets the phrase never mentions are dropped (the model must not invent them).
@@ -119,22 +91,22 @@ export function normalizeEnrichment(
   let project = text(r.project);
   let path = sanitizePath(r.folder_path);
   let rawDomain = r.domain;
-  // A project must be named by the user (in the phrase or explicitly) — the model must not attach one.
-  const named = (p: string) =>
-    (opts.projectHint ? sameName(opts.projectHint, p) : false) ||
-    mentions(opts.sourceText ?? '', p);
   if (opts.sourceText !== undefined) {
-    if (project && !named(project)) project = null;
-    const pathProject =
-      path[0] !== undefined && sameName(path[0], PROJECTS_ROOT) ? path[1] : undefined;
-    if (pathProject && !named(pathProject)) {
-      if (rawDomain.trim().toLowerCase() === 'project') rawDomain = 'other';
-      const topic = DOMAIN_TOPIC[rawDomain.trim().toLowerCase()] ?? 'Разное';
-      path = [topic, polarityFolderName(r.polarity === 'like' ? 'like' : 'dislike')];
-    }
+    ({
+      path,
+      project,
+      domain: rawDomain,
+    } = guardProject({
+      path,
+      project,
+      domain: rawDomain,
+      polarity,
+      sourceText: opts.sourceText,
+      projectHint: opts.projectHint ?? null,
+    }));
   }
   if (kind === 'project_only' && project) path = [PROJECTS_ROOT, project];
-  if (kind === 'preference') path = alignPolarityLeaf(path, polarity);
+  if (kind === 'preference') path = withPolarityLeaf(path, polarity);
   if (!path.length) throw new EnrichmentError('Модель не предложила папку');
 
   // model output carries literal `conditions`; an edited preview already carries `constraints`
@@ -162,13 +134,8 @@ export function normalizeEnrichment(
     folder_path: path,
     domain,
     project,
-    applies_to: uniqLower(r.applies_to ?? [], 12).filter(
-      (a) =>
-        !opts.sourceText || ABSTRACT_TARGETS.has(a) || squash(opts.sourceText).includes(squash(a)),
-    ),
-    tags: uniqLower(r.tags ?? [], 7).filter(
-      (t) => !POLARITY_TAGS.has(t) && !/^\d+$/.test(t) && t.length > 1,
-    ),
+    applies_to: guardTargets(uniqLower(r.applies_to ?? [], 12), opts.sourceText),
+    tags: cleanTags(uniqLower(r.tags ?? [], 7)),
     constraints,
     strength: Math.min(5, Math.max(1, Math.round(r.strength ?? 3))),
     language: (r.language ?? 'ru').trim().toLowerCase() || 'ru',

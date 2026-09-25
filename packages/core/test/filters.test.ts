@@ -81,8 +81,22 @@ describe('metadata filters and hybrid search', () => {
     ).toBe('Семейный чат');
     const ctx = await core.contextForTask({ task: 'напиши PHP-сервис', top_k: 2 });
     expect(ctx.context.domains).toEqual(['programming']);
+    expect(ctx.project_rules).toHaveLength(0);
+    expect(ctx.preferences.length).toBeLessThanOrEqual(2);
     expect(ctx.preferences.every((p) => p.preference.domain === 'programming')).toBe(true);
     const all = [...ctx.preferences.map((p) => p.preference), ...ctx.hard_constraints];
     expect(all.some((p) => p.constraint_metrics.includes('function_lines'))).toBe(true);
+    // 4 programming rules: shown ranked + hard constraints, the rest is reported, not silently dropped
+    expect(all.length + ctx.omitted).toBe(4);
+
+    // a named project returns ALL its rules regardless of top_k
+    ai.tasks.set('семейный чат: добавить экран', {
+      domains: [],
+      project: 'Семейный чат',
+      applies_to: [],
+    });
+    const proj = await core.contextForTask({ task: 'семейный чат: добавить экран', top_k: 1 });
+    expect(proj.context.project).toBe('Семейный чат');
+    expect(proj.project_rules).toHaveLength(2);
   });
 });
