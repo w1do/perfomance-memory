@@ -340,6 +340,15 @@ docker compose cp backup:/app/backups ./backups                      # забр�
 
 ## CI/CD и деплой (GitHub Actions → Dokploy)
 
+Два способа деплоя в Dokploy:
+
+- **Сборка на сервере из GitHub** — compose-приложение с файлом `docker-compose.yml`. У сервисов стоит
+  `pull_policy: build`: образы собираются из исходников, реестр не нужен. В Environment приложения — все переменные
+  из `.env.example` (обязательные: `OPENAI_API_KEY`, `MCP_TOKEN`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, для прода ещё
+  `PUBLIC_URL=https://ваш-домен`).
+- **Готовые образы из ghcr.io** (быстрее, без сборки на сервере) — файл `docker-compose.prod.yml`, образы собирает
+  GitHub Actions (ниже).
+
 `.github/workflows/ci.yml`:
 
 | Задача | Что делает | Когда |
