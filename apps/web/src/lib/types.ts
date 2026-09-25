@@ -51,6 +51,7 @@ export interface Preference extends Rationale {
   folder_depth: number;
   source: 'voice' | 'text' | 'mcp';
   is_active: boolean;
+  distinct_from: string[];
   history: HistoryEntry[];
   created_at: string;
   updated_at: string;
@@ -116,6 +117,8 @@ export interface Status {
   public_url: string;
   auth_enabled: boolean;
   max_audio_mb: number;
+  /** словарь applies_to; чего нет здесь, сервис переносит в теги */
+  targets: string[];
   links: {
     telegram: string;
     contact: string;
@@ -123,6 +126,13 @@ export interface Status {
     studio_name: string;
     youtube: string;
   };
+}
+
+/** Группа правил, которые требуют одного и того же (поиск старых дублей). */
+export interface DuplicateGroup {
+  keep: string;
+  reason: string;
+  preferences: Preference[];
 }
 
 export type Facets = Record<string, { value: string; count: number }[]>;

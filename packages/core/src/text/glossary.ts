@@ -1,5 +1,5 @@
 /**
- * Словарь целей `applies_to` и терминов распознавания речи. Каноническое имя → варианты, как их пишут и как их
+ * Словарь целей `applies_to` (фиксированный: чего нет здесь — уходит в теги) и терминов распознавания речи. Каноническое имя → варианты, как их пишут и как их
  * слышит Whisper («клауды-коды» = Claude Code). Используется, чтобы (1) не отбрасывать цель из-за транслита,
  * (2) приводить цели к одному имени, (3) подсказывать Whisper написание терминов (STT_TERMS).
  */
@@ -34,7 +34,23 @@ export const TARGET_ALIASES: Record<string, string[]> = {
   swagger: ['swagger', 'сваггер', 'openapi'],
   pest: ['pest'],
   mcp: ['mcp', 'эмсипи'],
+  next: ['next', 'nextjs', 'next.js', 'некст'],
+  nuxt: ['nuxt', 'накст'],
+  vue: ['vue'],
+  astro: ['astro'],
+  symfony: ['symfony', 'симфони'],
+  swoole: ['swoole', 'свул'],
+  octane: ['octane', 'laravel/octane'],
+  horizon: ['horizon', 'laravel/horizon', 'хорайзон'],
+  composer: ['composer', 'композер'],
+  git: ['git', 'гит'],
+  phpstan: ['phpstan'],
+  pint: ['pint', 'laravel/pint'],
+  deptrac: ['deptrac'],
 };
+
+/** Словарь applies_to: только эти цели (технологии, инструменты, ассистенты). Остальное — теги. */
+export const TARGETS = Object.keys(TARGET_ALIASES);
 
 /** Как писать термины в подсказке Whisper (prompt), чтобы он узнавал их на слух. */
 export const STT_TERMS = [
@@ -68,7 +84,7 @@ const squash = (s: string) =>
     .replace(/ё/g, 'е')
     .replace(/[^\p{L}\p{N}]+/gu, '');
 
-/** Приводит вариант к каноническому имени («Claude Code» → claude_code); неизвестное — как есть. */
+/** Приводит вариант к каноническому имени («Claude Code» → claude_code); неизвестное — как есть, в нижнем регистре. */
 export function canonicalTarget(target: string): string {
   const t = squash(target);
   for (const [name, aliases] of Object.entries(TARGET_ALIASES)) {
@@ -77,15 +93,28 @@ export function canonicalTarget(target: string): string {
   return target.trim().toLowerCase();
 }
 
-/** Цель названа во фразе — сама или любым её вариантом из словаря. */
+const escape = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/** Цель названа во фразе — сама или любым её вариантом; короткие (≤ 4 букв) — только отдельным словом. */
 export function targetMentioned(text: string, target: string): boolean {
   const hay = squash(text);
   const variants = [target, ...(TARGET_ALIASES[target] ?? [])];
-  return variants.some((v) => hay.includes(squash(v)));
+  return variants.some((v) => {
+    const sq = squash(v);
+    if (sq.length > 4) return hay.includes(sq);
+    return new RegExp(`(^|[^\\p{L}\\p{N}])${escape(v.toLowerCase())}($|[^\\p{L}\\p{N}])`, 'u').test(
+      text.toLowerCase().replace(/ё/g, 'е'),
+    );
+  });
 }
 
 /** Более конкретная цель поглощает общую: «клауды-коды» — это claude_code, а не ещё и claude. */
-const SUBSUMES: Record<string, string[]> = { claude_code: ['claude'], gitlab_ci: ['gitlab'] };
+const SUBSUMES: Record<string, string[]> = {
+  claude_code: ['claude'],
+  gitlab_ci: ['gitlab', 'git'],
+  gitlab: ['git'],
+  github: ['git'],
+};
 
 /** Цели из словаря, прямо названные во фразе (извлечение, а не догадка). */
 export function detectTargets(text: string): string[] {

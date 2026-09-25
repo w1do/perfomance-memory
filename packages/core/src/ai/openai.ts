@@ -14,9 +14,12 @@ import type {
   ConflictCandidate,
   ConflictDecision,
   ConflictInput,
+  DuplicateCandidate,
+  DuplicateGroups,
   EnrichInput,
   TaskContext,
 } from './provider.js';
+import { DUPLICATES_SYSTEM, duplicatesJsonSchema, duplicatesUserMessage } from './duplicates.js';
 import { conflictJsonSchema, enrichmentJsonSchema, taskContextJsonSchema } from './schemas.js';
 
 interface JsonSchemaFormat {
@@ -104,6 +107,15 @@ export class OpenAiProvider implements AiProvider {
       conflictJsonSchema as unknown as JsonSchemaFormat,
     )) as ConflictDecision;
     return raw;
+  }
+
+  async groupDuplicates(rules: DuplicateCandidate[]): Promise<DuplicateGroups> {
+    return (await this.json(
+      'duplicates',
+      DUPLICATES_SYSTEM,
+      duplicatesUserMessage(rules),
+      duplicatesJsonSchema as unknown as JsonSchemaFormat,
+    )) as DuplicateGroups;
   }
 
   async classifyTask(task: string, domains: string[], projects: string[]): Promise<TaskContext> {

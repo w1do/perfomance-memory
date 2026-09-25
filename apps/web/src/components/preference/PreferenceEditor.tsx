@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { api } from '../../lib/api';
 import type { Constraint, Level, Polarity, Preference, Rationale } from '../../lib/types';
 import { ConstraintEditor } from '../ConstraintEditor';
+import { TARGETS_HINT } from '../../lib/targets';
 import { Field, splitList, splitPath } from '../Field';
 import { LevelPicker } from '../Level';
 import { useToast } from '../Toasts';
@@ -88,7 +89,7 @@ export function PreferenceEditor({ p, onDone }: { p: Preference; onDone: () => v
       <Field label="Теги через запятую">
         <input className="input" value={tags} onChange={(e) => setTags(e.target.value)} />
       </Field>
-      <Field label="К чему относится">
+      <Field label="К чему относится" hint={TARGETS_HINT}>
         <input
           className="input mono"
           value={applies}

@@ -6,8 +6,6 @@
 import type { AiProvider } from '../ai/provider.js';
 import type { Config } from '../env.js';
 import { FolderError, type FolderService } from '../folders/service.js';
-import { withPolarityLeaf } from '../folders/tree.js';
-import { LEVEL_STRENGTH } from '../level.js';
 import type { Logger } from '../logger.js';
 import { buildPreferenceFilter } from '../qdrant/filters.js';
 import type { Store } from '../qdrant/store.js';
@@ -17,12 +15,12 @@ import {
   type Preview,
   type SaveResult,
 } from '../types.js';
-import { upsertWithVectors, type PrefDeps } from './deps.js';
+import type { PrefDeps } from './deps.js';
 import { Mutex } from './mutex.js';
-import { constraintMetrics, normalizeEnrichment } from './normalize.js';
+import { normalizeEnrichment } from './normalize.js';
 import { previewText } from './preview.js';
-import { blank, withExplicit } from './rationale.js';
-import { folderFields, snapshot } from './payload.js';
+import { withExplicit } from './rationale.js';
+import { getOrThrow, updatePreference } from './update.js';
 import * as q from './query.js';
 import { saveEnrichment } from './save.js';
 import {
@@ -80,49 +78,13 @@ export class PreferenceService {
     });
   }
 
-  async get(id: string): Promise<PreferencePayload> {
-    const p = await this.deps.store.getPreference(id);
-    if (!p) throw new PreferenceError('Правило не найдено', 404);
-    return p;
+  get(id: string): Promise<PreferencePayload> {
+    return getOrThrow(this.deps, id);
   }
 
-  /** Manual edit. Changes of meaning go to history; vectors are recomputed; the rule stays in a polarity leaf. */
+  /** Manual edit (update.ts). */
   update(id: string, patch: PreferencePatch): Promise<PreferencePayload> {
-    return this.write(async () => {
-      const old = await this.get(id);
-      const now = new Date().toISOString();
-      const path = withPolarityLeaf(
-        patch.folder_path ?? old.folder_path,
-        patch.polarity ?? old.polarity,
-      );
-      const domain = patch.domain ?? old.domain;
-      const { folder } = await this.folders.ensurePath(path, domain);
-      const constraints = patch.constraints ?? old.constraints;
-      const meaningChanged =
-        (patch.statement !== undefined && patch.statement !== old.statement) ||
-        (patch.polarity !== undefined && patch.polarity !== old.polarity) ||
-        (patch.level !== undefined && patch.level !== old.level) ||
-        (patch.constraints !== undefined &&
-          JSON.stringify(patch.constraints) !== JSON.stringify(old.constraints));
-      const updated: PreferencePayload = {
-        ...old,
-        ...patch,
-        domain,
-        strength: LEVEL_STRENGTH[patch.level ?? old.level],
-        why: blank(patch.why, old.why),
-        example_good: blank(patch.example_good, old.example_good),
-        example_bad: blank(patch.example_bad, old.example_bad),
-        constraints,
-        constraint_metrics: constraintMetrics(constraints),
-        ...folderFields(folder),
-        history: meaningChanged
-          ? [...old.history, snapshot(old, 'ручная правка', now)]
-          : old.history,
-        updated_at: now,
-      };
-      await upsertWithVectors(this.deps, updated);
-      return updated;
-    });
+    return this.write(() => updatePreference(this.deps, id, patch));
   }
 
   remove(id: string): Promise<void> {

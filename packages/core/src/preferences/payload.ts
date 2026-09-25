@@ -72,6 +72,7 @@ export function buildPayload(args: {
     ...folderFields(args.folder),
     source: args.source,
     is_active: true,
+    distinct_from: [],
     history: [],
     created_at: now,
     updated_at: now,

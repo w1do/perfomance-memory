@@ -33,7 +33,7 @@ describe('enrichment normalisation and metadata', () => {
     expect(e.statement).toBe('Файлы с кодом больше 100 строк');
     expect(e.details).toBeNull();
     expect(e.domain).toBe('programming');
-    expect(e.applies_to).toEqual(['any_ai']);
+    expect(e.applies_to).toEqual([]); // me / any_ai не хранятся
     expect(e.tags).toEqual(['код', 'файлы', 'размер']);
     expect(e.constraints).toEqual([
       { metric: 'file_lines', operator: '<=', value: 100, unit: 'lines' },
@@ -50,13 +50,14 @@ describe('enrichment normalisation and metadata', () => {
     const e = normalizeEnrichment(
       {
         ...raw,
-        applies_to: ['php', 'react', 'any_ai', 'ChatGPT'],
+        applies_to: ['php', 'react', 'any_ai', 'ChatGPT', 'README.md'],
         tags: ['код', 'не люблю', 'предпочтения', 'файлы'],
       },
-      { sourceText: 'не люблю, когда ChatGPT пишет файлы с кодом больше 100 строк' },
+      { sourceText: 'не люблю, когда ChatGPT пишет README.md и файлы с кодом больше 100 строк' },
     );
-    expect(e.applies_to).toEqual(['any_ai', 'chatgpt']);
-    expect(e.tags).toEqual(['код', 'файлы']);
+    expect(e.applies_to).toEqual(['chatgpt']);
+    // не из словаря — в теги
+    expect(e.tags).toEqual(['код', 'файлы', 'readme.md']);
     // user edits in the preview (no sourceText) are kept as typed
     expect(normalizeEnrichment({ ...raw, applies_to: ['php'] }).applies_to).toEqual(['php']);
   });
@@ -169,6 +170,7 @@ describe('enrichment normalisation and metadata', () => {
         'folder_depth',
         'source',
         'is_active',
+        'distinct_from',
         'history',
         'created_at',
         'updated_at',

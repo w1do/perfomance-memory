@@ -23,7 +23,9 @@ export { buildPreferenceFilter, normalizeFolderPath } from './qdrant/filters.js'
 export { PREFERENCE_INDEXES, FOLDER_INDEXES, indexTypeName } from './qdrant/schema.js';
 export { Store } from './qdrant/store.js';
 export { tokenize } from './text/tokenize.js';
-export { STT_TERMS, canonicalTarget, detectTargets } from './text/glossary.js';
+export { STT_TERMS, TARGETS, canonicalTarget, detectTargets } from './text/glossary.js';
+export { HygieneService } from './preferences/hygiene.js';
+export type { DuplicateGroup } from './preferences/duplicates.js';
 export { bm25Document, bm25Query } from './text/bm25.js';
 export { createBackup, backupCollections, type BackupManifest } from './backup/snapshot.js';
 export { listBackups, pruneBackups, latestBackupAge, readManifest } from './backup/retention.js';

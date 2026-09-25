@@ -3,6 +3,8 @@ import type {
   ConflictCandidate,
   ConflictDecision,
   ConflictInput,
+  DuplicateCandidate,
+  DuplicateGroups,
   EnrichInput,
   TaskContext,
 } from '../src/ai/provider.js';
@@ -73,6 +75,23 @@ export class FakeAi implements AiProvider {
     if (opposite)
       return { decision: 'conflict', target_id: opposite.id, reason: 'оценка сменилась' };
     return { decision: 'new', target_id: null, reason: 'новое' };
+  }
+
+  /** Like a model: rules whose statements share at least half of the words are duplicates. */
+  async groupDuplicates(rules: DuplicateCandidate[]): Promise<DuplicateGroups> {
+    const words = (s: string) => new Set(tokenize(s));
+    const groups: { ids: string[]; reason: string }[] = [];
+    for (const r of rules) {
+      const w = words(r.statement);
+      const g = groups.find((x) => {
+        const o = words(rules.find((y) => y.id === x.ids[0])?.statement ?? '');
+        const common = [...w].filter((t) => o.has(t)).length;
+        return common * 2 >= Math.max(w.size, o.size);
+      });
+      if (g) g.ids.push(r.id);
+      else groups.push({ ids: [r.id], reason: 'одно и то же' });
+    }
+    return { groups: groups.filter((g) => g.ids.length > 1) };
   }
 
   async classifyTask(task: string): Promise<TaskContext> {

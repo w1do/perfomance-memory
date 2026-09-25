@@ -4,6 +4,7 @@
  */
 import type { Enrichment, Preview } from '../../lib/types';
 import { Badge, PathLabel } from '../Badges';
+import { TARGETS_HINT } from '../../lib/targets';
 import { Field } from '../Field';
 import { Icon } from '../Icon';
 import { LevelPicker } from '../Level';
@@ -112,7 +113,7 @@ export function PreviewMetaSection({
             />
           </Field>
         </div>
-        <Field label="К чему относится">
+        <Field label="К чему относится" hint={TARGETS_HINT}>
           <input
             className="input mono"
             value={meta.applies}

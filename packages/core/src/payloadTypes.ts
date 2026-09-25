@@ -29,6 +29,8 @@ export interface PreferencePayload {
   folder_depth: number;
   source: Source;
   is_active: boolean;
+  /** id правил, которые пользователь пометил «не дубли» — поиск дублей их больше не предлагает */
+  distinct_from: string[];
   history: HistoryEntry[];
   created_at: string;
   updated_at: string;

@@ -12,6 +12,7 @@ import type { Logger } from './logger.js';
 import { PreferenceService } from './preferences/service.js';
 import { createQdrant } from './qdrant/client.js';
 import { existsSync } from 'node:fs';
+import { HygieneService } from './preferences/hygiene.js';
 import { migrateLevels } from './preferences/migrate.js';
 import { reindexAll, reindexBackupPath } from './qdrant/reindex.js';
 import { ensureSchema, waitForQdrant } from './qdrant/setup.js';
@@ -65,6 +66,11 @@ export function createCore(opts: CoreOptions) {
    * Startup: wait for Qdrant, create/verify collections, indexes and the config point,
    * reindex if the embedding model/dim changed (only the owner process does it), seed demo data.
    */
+  const hygiene = new HygieneService(
+    { store, folders, ai, config, log: log.child({ module: 'hygiene' }) },
+    (fn) => prefs.write(fn),
+  );
+
   async function bootstrap(options: { owner: boolean }): Promise<void> {
     await waitForQdrant(qdrant, log);
     for (;;) {
@@ -78,7 +84,10 @@ export function createCore(opts: CoreOptions) {
       log.info('waiting for the api service to finish reindexing');
       await new Promise((r) => setTimeout(r, 5000));
     }
-    if (options.owner) await migrateLevels(store, log);
+    if (options.owner) {
+      await migrateLevels(store, log);
+      await hygiene.normalizeTargets();
+    }
     if (options.owner && config.SEED_DEMO) {
       await seedDemo(store, folders, ai, log);
     }
@@ -93,6 +102,7 @@ export function createCore(opts: CoreOptions) {
     store,
     folders,
     prefs,
+    hygiene,
     dataDir,
     bootstrap,
     exportMarkdown,

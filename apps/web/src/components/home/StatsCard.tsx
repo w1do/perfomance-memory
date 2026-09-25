@@ -1,11 +1,13 @@
 /**
  * Статистика (роль like, 3D-сердце): число правил, полоса «люблю / не люблю» (draw),
- * счётчики папок и проектов, последняя запись. Карточка Card из фундамента, токены frost-01.
+ * счётчики папок и проектов, «Найти дубли» (HygieneModal), последняя запись. Карточка Card из фундамента, токены frost-01.
  */
+import { useState } from 'react';
 import { useAsync } from '../../hooks/useAsync';
 import { api } from '../../lib/api';
 import { formatDate } from '../Badges';
 import { Icon } from '../Icon';
+import { HygieneModal } from '../hygiene/HygieneModal';
 import { Card } from '../ui/Card';
 import { Tip } from '../ui/Tip';
 import { plural, RULES } from './plural';
@@ -17,6 +19,7 @@ export function StatsCard({ className = '', index = 2 }: { className?: string; i
   const dislike = data?.dislike ?? 0;
   const active = like + dislike;
   const likeShare = active ? (like / active) * 100 : 0;
+  const [hygiene, setHygiene] = useState(false);
 
   return (
     <Card
@@ -60,10 +63,25 @@ export function StatsCard({ className = '', index = 2 }: { className?: string; i
         </div>
       </div>
 
-      <p className="m-0 text-text-2">
-        Папки <span className="mono text-text">{data?.folders ?? 0}</span> · Проекты{' '}
-        <span className="mono text-text">{data?.projects ?? 0}</span>
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="m-0 text-text-2">
+          Папки <span className="mono text-text">{data?.folders ?? 0}</span> · Проекты{' '}
+          <span className="mono text-text">{data?.projects ?? 0}</span>
+        </p>
+        <Tip content="Одинаковые по смыслу правила — слить в одно">
+          {(t) => (
+            <button
+              {...t}
+              type="button"
+              className="btn btn-ghost btn-sm"
+              disabled={total < 2}
+              onClick={() => setHygiene(true)}
+            >
+              <Icon name="search" /> Найти дубли
+            </button>
+          )}
+        </Tip>
+      </div>
 
       <div className="card-foot flex-col flex-nowrap gap-1">
         <div className="eyebrow">Последняя запись</div>
@@ -77,6 +95,7 @@ export function StatsCard({ className = '', index = 2 }: { className?: string; i
           <span className="text-caption text-muted">{formatDate(data.last.updated_at)}</span>
         )}
       </div>
+      {hygiene && <HygieneModal onClose={() => setHygiene(false)} />}
     </Card>
   );
 }

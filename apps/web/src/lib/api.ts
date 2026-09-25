@@ -1,4 +1,5 @@
 import type {
+  DuplicateGroup,
   Facets,
   Filters,
   FolderNode,
@@ -93,5 +94,9 @@ export const api = {
   facets: (f: Filters) => request<Facets>('GET', `/api/facets${qs({ ...f, q: undefined })}`),
   stats: () => request<Stats>('GET', '/api/stats'),
   status: () => request<Status>('GET', '/api/status'),
+  duplicates: () => request<{ groups: DuplicateGroup[] }>('GET', '/api/hygiene/duplicates'),
+  merge: (keep: string, remove: string[]) =>
+    request<Preference>('POST', '/api/hygiene/merge', { keep, remove }),
+  distinct: (ids: string[]) => request<{ ok: true }>('POST', '/api/hygiene/distinct', { ids }),
   exportMd: (folder?: string) => request<string>('GET', `/api/export.md${qs({ folder })}`),
 };

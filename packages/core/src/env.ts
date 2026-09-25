@@ -1,54 +1,14 @@
 import { z } from 'zod';
-
-/**
- * docker compose keeps "KEY=   # comment" as the literal value "# comment",
- * so a value that starts with "#" is a comment, i.e. empty.
- */
-const clean = (v: unknown) => {
-  if (typeof v !== 'string') return v;
-  const t = v.trim();
-  return t.startsWith('#') ? '' : t;
-};
-
-const trimmed = <T extends z.ZodType>(schema: T) => z.preprocess(clean, schema);
-
-const required = (hint: string) =>
-  trimmed(z.string({ error: `заполните (${hint})` }).min(1, `заполните (${hint})`));
-
-const optionalString = (fallback: string) =>
-  trimmed(z.string().optional()).transform((v) => (v ? v : fallback));
-
-const bool = (fallback: boolean) =>
-  trimmed(z.enum(['true', 'false', '1', '0', 'yes', 'no', '']).optional()).transform((v) =>
-    v === undefined || v === '' ? fallback : ['true', '1', 'yes'].includes(v),
-  );
-
-const int = (fallback: number, min: number, max: number) =>
-  trimmed(z.string().optional()).pipe(
-    z
-      .string()
-      .optional()
-      .transform((v) => (v ? Number(v) : fallback))
-      .pipe(z.number().int(`должно быть целым числом`).min(min).max(max)),
-  );
-
-const num = (fallback: number, min: number, max: number) =>
-  trimmed(z.string().optional()).pipe(
-    z
-      .string()
-      .optional()
-      .transform((v) => (v ? Number(v) : fallback))
-      .pipe(z.number({ error: 'должно быть числом' }).min(min).max(max)),
-  );
-
-const url = (fallback: string) =>
-  optionalString(fallback).pipe(z.url({ error: 'должно быть адресом вида http(s)://…' }));
-
-/** Необязательная публичная ссылка: пусто — элемент интерфейса не показывается. */
-const optionalUrl = () =>
-  optionalString('').pipe(
-    z.union([z.literal(''), z.url({ error: 'должно быть адресом https://…' })]),
-  );
+import {
+  bool,
+  int,
+  num,
+  optionalString,
+  optionalUrl,
+  required,
+  trimmed,
+  url,
+} from './envFields.js';
 
 export const envSchema = z.object({
   OPENAI_API_KEY: required('ключ OpenAI API'),
@@ -92,6 +52,7 @@ export const envSchema = z.object({
   ),
 
   CONFLICT_SCORE: num(0.8, 0, 1),
+  DUPLICATE_SCORE: num(0.6, 0, 1),
   SEARCH_TOP_K: int(10, 1, 100),
   MAX_AUDIO_MB: int(25, 1, 200),
   SEED_DEMO: bool(false),

@@ -1,10 +1,10 @@
 /**
  * Защиты от выдумок модели (ТЗ: «не выдумывать данные»): проект — только если назван; цели applies_to — только
- * названные во фразе (с учётом синонимов словаря) плюс me/any_ai; названные, но пропущенные моделью цели
- * извлекаются из фразы; теги без слов полярности.
+ * названные во фразе (с учётом синонимов словаря); названные, но пропущенные моделью цели извлекаются из фразы;
+ * applies_to — только из словаря TARGETS, остальное уходит в теги (splitTargets); теги без слов полярности.
  */
 import { polarityFolderName, sameName } from '../folders/tree.js';
-import { canonicalTarget, detectTargets, targetMentioned } from '../text/glossary.js';
+import { TARGETS, canonicalTarget, detectTargets, targetMentioned } from '../text/glossary.js';
 import { mentions } from '../text/mentions.js';
 import { PROJECTS_ROOT, type Polarity } from '../types.js';
 
@@ -55,10 +55,22 @@ export function guardProject(args: {
 export function guardTargets(targets: string[], sourceText?: string): string[] {
   const canon = [...new Set(targets.map(canonicalTarget).filter(Boolean))];
   if (sourceText === undefined) return canon.slice(0, 12);
-  const kept = canon.filter((t) => ABSTRACT_TARGETS.has(t) || targetMentioned(sourceText, t));
-  const concrete = kept.filter((t) => !ABSTRACT_TARGETS.has(t));
-  const found = concrete.length ? [] : detectTargets(sourceText);
+  const kept = canon.filter((t) => !ABSTRACT_TARGETS.has(t) && targetMentioned(sourceText, t));
+  const found = kept.some((t) => TARGETS.includes(t)) ? [] : detectTargets(sourceText);
   return [...new Set([...found, ...kept])].slice(0, 12);
+}
+
+/** Словарь applies_to: известные цели остаются, me/any_ai убираются, прочее (файлы, пакеты, классы) — в теги. */
+export function splitTargets(values: string[]): { targets: string[]; extra: string[] } {
+  const targets: string[] = [];
+  const extra: string[] = [];
+  for (const v of values) {
+    const t = canonicalTarget(v);
+    if (!t || ABSTRACT_TARGETS.has(t)) continue;
+    const bucket = TARGETS.includes(t) ? targets : extra;
+    if (!bucket.includes(t)) bucket.push(t);
+  }
+  return { targets, extra };
 }
 
 export const cleanTags = (tags: string[]): string[] =>

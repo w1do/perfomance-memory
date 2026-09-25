@@ -5,6 +5,7 @@ import type { Core } from '@preference-memory/core';
 import { registerAuth } from './auth.js';
 import { errorHandler } from './errors.js';
 import { folderRoutes } from './routes/folders.js';
+import { hygieneRoutes } from './routes/hygiene.js';
 import { metaRoutes, type MetaOptions } from './routes/meta.js';
 import { preferenceRoutes } from './routes/preferences.js';
 import { transcribeRoutes } from './routes/transcribe.js';
@@ -25,5 +26,6 @@ export async function buildServer(core: Core, opts: MetaOptions): Promise<Fastif
   transcribeRoutes(app, core);
   preferenceRoutes(app, core);
   folderRoutes(app, core);
+  hygieneRoutes(app, core);
   return app;
 }

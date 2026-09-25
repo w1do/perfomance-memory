@@ -34,6 +34,19 @@ export interface ConflictDecision {
   reason: string;
 }
 
+export interface DuplicateCandidate {
+  id: string;
+  statement: string;
+  details: string | null;
+  polarity: Polarity;
+  folder_path: string[];
+}
+
+export interface DuplicateGroups {
+  /** differences — чем правила группы отличаются; непустое значит «не дубли» */
+  groups: { ids: string[]; reason: string; differences?: string }[];
+}
+
 export interface TaskContext {
   domains: string[];
   project: string | null;
@@ -47,6 +60,8 @@ export interface AiProvider {
   /** Returns raw JSON from the model; the caller validates and normalises it. */
   enrich(input: EnrichInput): Promise<unknown>;
   decideConflict(input: ConflictInput, candidates: ConflictCandidate[]): Promise<ConflictDecision>;
+  /** Группы правил, которые требуют одного и того же (поиск старых дублей). */
+  groupDuplicates(rules: DuplicateCandidate[]): Promise<DuplicateGroups>;
   classifyTask(task: string, domains: string[], projects: string[]): Promise<TaskContext>;
   embed(texts: string[]): Promise<number[][]>;
 }

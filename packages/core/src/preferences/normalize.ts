@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { sanitizePath, withPolarityLeaf } from '../folders/tree.js';
-import { cleanTags, guardProject, guardTargets } from './guards.js';
+import { cleanTags, guardProject, guardTargets, splitTargets } from './guards.js';
 import { rationale, text } from './rationale.js';
 import {
   PROJECTS_ROOT,
@@ -125,6 +125,7 @@ export function normalizeEnrichment(
       .replace(/^_+|_+$/g, '') || 'other';
   if (domain === 'other' && project && path[0] === PROJECTS_ROOT) domain = 'project';
   const details = text(r.details);
+  const split = splitTargets(guardTargets(uniqLower(r.applies_to ?? [], 12), opts.sourceText));
   const result = enrichmentSchema.safeParse({
     kind,
     statement: statement.charAt(0).toUpperCase() + statement.slice(1),
@@ -133,8 +134,8 @@ export function normalizeEnrichment(
     folder_path: path,
     domain,
     project,
-    applies_to: guardTargets(uniqLower(r.applies_to ?? [], 12), opts.sourceText),
-    tags: cleanTags(uniqLower(r.tags ?? [], 7)),
+    applies_to: split.targets,
+    tags: cleanTags(uniqLower([...(r.tags ?? []), ...split.extra], 12)).slice(0, 7),
     constraints,
     ...rationale(r),
     language: (r.language ?? 'ru').trim().toLowerCase() || 'ru',

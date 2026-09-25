@@ -27,6 +27,7 @@ export const PREFERENCE_INDEXES: IndexSpec[] = [
     'source',
     'language',
     'level',
+    'distinct_from',
   ].map((field) => ({ field, schema: 'keyword' as const })),
   { field: 'strength', schema: 'integer' },
   { field: 'folder_depth', schema: 'integer' },

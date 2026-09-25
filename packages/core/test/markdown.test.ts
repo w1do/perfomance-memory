@@ -41,6 +41,7 @@ const pref = (over: Partial<PreferencePayload>): PreferencePayload => ({
   folder_depth: 0,
   source: 'text',
   is_active: true,
+  distinct_from: [],
   history: [],
   created_at: '2026-01-01',
   updated_at: '2026-01-01',
