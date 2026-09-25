@@ -144,9 +144,14 @@ claude mcp add --transport http --scope user preferences https://ваш-доме
 ### Claude Desktop и ChatGPT
 
 Им нужен публичный **HTTPS**-адрес — `localhost` не подойдёт. Опубликуйте сервис через reverse proxy (например,
-деплой в Dokploy с доменом и TLS) и укажите в `.env` `PUBLIC_URL=https://ваш-домен`. В настройках подключения
-MCP-сервера (коннекторы) клиента укажите URL `https://ваш-домен/mcp` и заголовок
-`Authorization: Bearer <MCP_TOKEN>`.
+деплой в Dokploy с доменом и TLS) и укажите в `.env` `PUBLIC_URL=https://ваш-домен`.
+
+**Claude.ai и Claude Desktop:** Customize → Connectors → Add custom connector → URL `https://ваш-домен/mcp` →
+Continue → в **Request headers** выберите **`x-api-key`**, значение — `MCP_TOKEN` (без слова `Bearer`). Заголовок
+`authorization` там недоступен: он занят под OAuth. Сервер принимает токен в `X-Api-Key` так же, как в
+`Authorization: Bearer`. Коннекторы общие для аккаунта — в Claude Desktop он появится сам.
+
+**ChatGPT** статичный токен не передаёт (только OAuth); нужен Secure MCP Tunnel или OAuth на стороне сервиса.
 
 ### Навык `preference-memory` для любых агентов
 

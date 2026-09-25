@@ -44,6 +44,9 @@
 - `scripts/push-dump.sh user@server`: перенос данных с локального стека на сервер одной командой (свежий бэкап →
   scp → restore в контейнере backup → restart api и mcp).
 
+- MCP принимает токен и в заголовке `X-Api-Key` (для коннекторов Claude.ai / Desktop, где `authorization` занят
+  под OAuth); подходит любой верный из `Authorization: Bearer` и `X-Api-Key`. Инструкции в UI, README и навыке обновлены.
+
 ### Изменено
 - Веб, редизайн «Aurora Glass+» (frost-01), фундамент: стили разбиты на файлы ≤150 строк (`tokens-dark.css`,
   `tokens-fx.css` с записями каталога градиентов, `base`, `components`, `controls`, `roles`, `card`, `card-fx`,

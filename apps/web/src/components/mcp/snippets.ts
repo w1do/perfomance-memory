@@ -44,12 +44,12 @@ export function snippetsFor(client: McpClient, url: string): Snippets {
       return {
         blocks: [
           { label: 'URL', code: url },
-          { label: 'Заголовок', code: header },
+          { label: 'Заголовок (Request headers → x-api-key)', code: `X-Api-Key: ${TOKEN}` },
         ],
         steps: [
-          'Откройте `Customize → Connectors → Add custom connector`',
-          'Вставьте URL — серверу нужен публичный `https://`, до `localhost` облако не достаёт',
-          'В разделе `Request headers` (бета) добавьте `authorization` со значением `Bearer <MCP_TOKEN>`',
+          'Claude.ai → `Customize → Connectors → Add custom connector`, вставьте URL → `Continue`',
+          'В `Request headers` выберите `x-api-key`, значение — `<MCP_TOKEN>` из `.env` (без слова Bearer)',
+          'Сохраните и включите коннектор в чате; в Claude Desktop он появится сам — коннекторы общие для аккаунта',
         ],
       };
     case 'chatgpt':

@@ -23,7 +23,7 @@ export PREFERENCES_MCP_TOKEN="$(grep '^MCP_TOKEN=' /путь/к/preference-memor
 | Клиент | Bearer-заголовок | Токен из переменной | Навык (глобально) |
 |---|---|---|---|
 | Claude Code | да | `${VAR}` в `.mcp.json` | `~/.claude/skills/` |
-| Claude.ai / Claude Desktop (коннектор) | только бета «Request headers», нужен публичный HTTPS | нет | загрузка ZIP |
+| Claude.ai / Claude Desktop (коннектор) | заголовок `x-api-key` в «Request headers», нужен публичный HTTPS | нет | загрузка ZIP |
 | Claude Desktop → localhost | через мост `mcp-remote` | `env` в конфиге | загрузка ZIP |
 | ChatGPT web | **нет** (OAuth / без авторизации) — обход через Secure MCP Tunnel | `env:` в tunnel-client | загрузка ZIP (Business+) |
 | Codex (CLI, IDE, ChatGPT desktop) | да | `bearer_token_env_var` | `~/.agents/skills/` |
@@ -90,9 +90,9 @@ claude mcp add --transport http --scope user preferences http://localhost:3000/m
 ## Claude.ai и Claude Desktop
 
 - **Коннектор (web и Desktop):** Customize → Connectors → Add custom connector → URL `https://ваш-домен/mcp`.
-  Серверу нужен **публичный HTTPS** — к нему ходит облако Anthropic, `localhost` недоступен. Bearer задаётся в
-  разделе **Request headers** (бета, есть не у всех): заголовок `authorization`, значение целиком `Bearer <TOKEN>`.
-  Нет такого раздела — Bearer передать нельзя.
+  Серверу нужен **публичный HTTPS** — к нему ходит облако Anthropic, `localhost` недоступен. В разделе
+  **Request headers** выберите **`x-api-key`**, значение — `MCP_TOKEN` без `Bearer` (`authorization` там занят под
+  OAuth; сервер принимает токен в `X-Api-Key`).
 - **Desktop → локальный сервер:** мост `mcp-remote` в `claude_desktop_config.json`
   (Windows `%APPDATA%\Claude\`, macOS `~/Library/Application Support/Claude/`):
   ```json

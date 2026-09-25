@@ -221,8 +221,8 @@ async function freePort(): Promise<number> {
   });
 }
 
-describe('HTTP transport with Bearer MCP_TOKEN', () => {
-  it('401 without/with wrong token, 200 with the right one, health is open', async () => {
+describe('HTTP transport with MCP_TOKEN', () => {
+  it('401 without/with wrong token, 200 with Bearer or X-Api-Key, health is open', async () => {
     const core = await makeCore({ SEED_DEMO: 'false' });
     const server = buildMcpServer(core);
     const port = await freePort();
@@ -255,6 +255,22 @@ describe('HTTP transport with Bearer MCP_TOKEN', () => {
           .status,
       ).toBe(401);
       expect((await fetch(`http://127.0.0.1:${port}/health`)).status).toBe(200);
+      const withKey = (key: string) => ({
+        ...init,
+        headers: { ...init.headers, 'x-api-key': key },
+      });
+      expect((await fetch(url, withKey('wrong'))).status).toBe(401);
+      expect((await fetch(url, withKey(core.config.MCP_TOKEN))).status).toBe(200);
+      // Claude.ai may send its own (OAuth) Authorization alongside X-Api-Key — a valid key still wins
+      const both = {
+        ...init,
+        headers: {
+          ...init.headers,
+          authorization: 'Bearer oauth-xyz',
+          'x-api-key': core.config.MCP_TOKEN,
+        },
+      };
+      expect((await fetch(url, both)).status).toBe(200);
 
       const client = new Client({ name: 't', version: '1' });
       await client.connect(
