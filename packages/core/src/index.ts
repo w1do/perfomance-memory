@@ -30,12 +30,3 @@ export { listBackups, pruneBackups, latestBackupAge, readManifest } from './back
 export { restoreBackup } from './backup/restore.js';
 export { createQdrant } from './qdrant/client.js';
 export { waitForQdrant } from './qdrant/setup.js';
-export {
-  oauth,
-  pkceMatches,
-  ACCESS_TTL_S,
-  REFRESH_TTL_S,
-  type OAuthClient,
-  type OAuthCode,
-  type OAuthGrant,
-} from './oauth/tokens.js';
