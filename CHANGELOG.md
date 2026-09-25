@@ -41,6 +41,9 @@
 
 - Демо-скриншоты панели в `docs/screenshots/` и галерея «Demo» в README.
 
+- `scripts/push-dump.sh user@server`: перенос данных с локального стека на сервер одной командой (свежий бэкап →
+  scp → restore в контейнере backup → restart api и mcp).
+
 ### Изменено
 - Веб, редизайн «Aurora Glass+» (frost-01), фундамент: стили разбиты на файлы ≤150 строк (`tokens-dark.css`,
   `tokens-fx.css` с записями каталога градиентов, `base`, `components`, `controls`, `roles`, `card`, `card-fx`,
