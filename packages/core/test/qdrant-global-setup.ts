@@ -19,7 +19,7 @@ export default async function setup(project: TestProject) {
       .split(':')
       .pop();
     url = `http://127.0.0.1:${port}`;
-    for (let i = 0; i < 60; i++) {
+    for (let i = 0; i < 240; i++) {
       try {
         const res = await fetch(`${url}/readyz`);
         if (res.ok) break;
