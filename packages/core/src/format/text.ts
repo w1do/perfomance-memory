@@ -1,16 +1,20 @@
 import { formatConstraint } from '../export/markdown.js';
+import { LEVEL_LABEL } from '../level.js';
 import type { FolderNode, PreferencePayload } from '../types.js';
 
 /** One compact line (plus optional details) per rule — what agents read. */
 export function formatRule(p: PreferencePayload): string {
-  const mark = p.polarity === 'like' ? '[люблю]' : '[не люблю]';
-  const parts = [`- ${mark} ${p.statement} (сила ${p.strength}/5)`];
+  const mark = `[${p.polarity === 'like' ? 'люблю' : 'не люблю'} · ${LEVEL_LABEL[p.level]}]`;
+  const parts = [`- ${mark} ${p.statement}`];
   if (p.constraints.length) {
     parts.push(
       `  constraints: ${p.constraints.map((c) => `\`${formatConstraint(c)}\``).join(', ')}`,
     );
   }
   if (p.details) parts.push(`  ${p.details}`);
+  if (p.why) parts.push(`  почему: ${p.why}`);
+  if (p.example_good) parts.push(`  так: ${p.example_good}`);
+  if (p.example_bad) parts.push(`  не так: ${p.example_bad}`);
   const meta: string[] = [];
   if (p.applies_to.length) meta.push(`applies_to: ${p.applies_to.join(', ')}`);
   if (p.project) meta.push(`project: ${p.project}`);

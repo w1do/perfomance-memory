@@ -7,6 +7,7 @@ import type { AiProvider } from '../ai/provider.js';
 import type { Config } from '../env.js';
 import { FolderError, type FolderService } from '../folders/service.js';
 import { withPolarityLeaf } from '../folders/tree.js';
+import { LEVEL_STRENGTH } from '../level.js';
 import type { Logger } from '../logger.js';
 import { buildPreferenceFilter } from '../qdrant/filters.js';
 import type { Store } from '../qdrant/store.js';
@@ -20,6 +21,7 @@ import { upsertWithVectors, type PrefDeps } from './deps.js';
 import { Mutex } from './mutex.js';
 import { constraintMetrics, normalizeEnrichment } from './normalize.js';
 import { previewText } from './preview.js';
+import { blank, withExplicit } from './rationale.js';
 import { folderFields, snapshot } from './payload.js';
 import * as q from './query.js';
 import { saveEnrichment } from './save.js';
@@ -73,7 +75,8 @@ export class PreferenceService {
       }
       if (!input.text?.trim()) throw new PreferenceError('Нужен text или preview', 400);
       const p = await this.preview(input.text, input.projectHint);
-      return saveEnrichment(this.deps, p.enrichment, p.text, input.source);
+      const e = withExplicit(p.enrichment, input.explicit);
+      return saveEnrichment(this.deps, e, p.text, input.source);
     });
   }
 
@@ -98,12 +101,17 @@ export class PreferenceService {
       const meaningChanged =
         (patch.statement !== undefined && patch.statement !== old.statement) ||
         (patch.polarity !== undefined && patch.polarity !== old.polarity) ||
+        (patch.level !== undefined && patch.level !== old.level) ||
         (patch.constraints !== undefined &&
           JSON.stringify(patch.constraints) !== JSON.stringify(old.constraints));
       const updated: PreferencePayload = {
         ...old,
         ...patch,
         domain,
+        strength: LEVEL_STRENGTH[patch.level ?? old.level],
+        why: blank(patch.why, old.why),
+        example_good: blank(patch.example_good, old.example_good),
+        example_bad: blank(patch.example_bad, old.example_bad),
         constraints,
         constraint_metrics: constraintMetrics(constraints),
         ...folderFields(folder),

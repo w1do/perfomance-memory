@@ -1,5 +1,5 @@
 /**
- * Поиск по смыслу и словам + чипы-фильтры из /api/facets (домен, кому, ограничения, теги, сила ≥ 4).
+ * Поиск по смыслу и словам + чипы-фильтры из /api/facets (домен, кому, ограничения, теги, только жёсткие).
  * На <768 чипы — горизонтальная лента; подсказка Tip объясняет порядок «сначала фильтр, потом ранжирование».
  */
 import type { Facets, Filters } from '../lib/types';
@@ -29,7 +29,7 @@ export function FilterBar({
 }) {
   const toggle = (key: (typeof GROUPS)[number]['key'], value: string) =>
     onChange({ ...filters, [key]: filters[key] === value ? undefined : value });
-  const strong = filters.min_strength;
+  const hard = filters.level === 'hard';
 
   return (
     <div className="flex min-w-0 flex-col gap-sm">
@@ -58,10 +58,11 @@ export function FilterBar({
         </Tip>
         <button
           className="chip shrink-0"
-          aria-pressed={Boolean(strong)}
-          onClick={() => onChange({ ...filters, min_strength: strong ? undefined : 4 })}
+          aria-pressed={hard}
+          title="Правила уровня «жёстко»: нарушение — дефект"
+          onClick={() => onChange({ ...filters, level: hard ? undefined : 'hard' })}
         >
-          сила ≥ {strong ?? 4}
+          только жёсткие
         </button>
         {GROUPS.map((g) =>
           (facets?.[g.facet] ?? []).slice(0, g.key === 'tags' ? 10 : 8).map((f) => (

@@ -26,6 +26,7 @@ export const PREFERENCE_INDEXES: IndexSpec[] = [
     'constraint_metrics',
     'source',
     'language',
+    'level',
   ].map((field) => ({ field, schema: 'keyword' as const })),
   { field: 'strength', schema: 'integer' },
   { field: 'folder_depth', schema: 'integer' },
@@ -34,6 +35,7 @@ export const PREFERENCE_INDEXES: IndexSpec[] = [
   { field: 'updated_at', schema: 'datetime' },
   { field: 'statement', schema: TEXT },
   { field: 'details', schema: TEXT },
+  { field: 'why', schema: TEXT },
 ];
 
 export const FOLDER_INDEXES: IndexSpec[] = [

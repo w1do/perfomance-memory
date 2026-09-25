@@ -90,6 +90,10 @@ describe('MCP tools over the in-memory transport', () => {
     expect(out).toContain('domains: programming');
     expect(out).toContain('# Жёсткие ограничения');
     expect(out).toContain('`function_lines <= 40 lines`');
+    expect(out).toContain('Уровни: «жёстко» — соблюдать всегда, нарушение = дефект');
+    expect(out).toContain('[не люблю · жёстко] Функции длиннее 40 строк');
+    expect(out).toContain('почему: Длинную функцию трудно прочитать и проверить целиком.');
+    expect(out).toContain('не так: Одна функция на 120 строк');
     expect(out).toContain('Строгая типизация в PHP');
     expect(out).not.toContain('Рыбалка');
   });
@@ -172,10 +176,16 @@ describe('MCP tools over the in-memory transport', () => {
     const out = text(
       await client.callTool({
         name: 'add_preference',
-        arguments: { text: 'не люблю файлы с кодом больше 100 строк' },
+        arguments: {
+          text: 'не люблю файлы с кодом больше 100 строк',
+          level: 'hard',
+          why: 'длинный файл трудно ревьюить',
+        },
       }),
     );
     expect(out).toContain('Результат: создано');
+    expect(out).toContain('· жёстко] Файлы с кодом больше 100 строк');
+    expect(out).toContain('почему: длинный файл трудно ревьюить');
     expect(out).toContain('`file_lines <= 100 lines`');
     const saved = await core.prefs.all({ metric: 'file_lines' });
     expect(saved[0]?.source).toBe('mcp');

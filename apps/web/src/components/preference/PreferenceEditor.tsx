@@ -1,12 +1,13 @@
 /** Редактор правила на месте карточки: Card opaque в краске полярности, поля Field, «Сохранить» / «Отмена». */
 import { useState } from 'react';
 import { api } from '../../lib/api';
-import type { Constraint, Polarity, Preference } from '../../lib/types';
-import { StrengthDots } from '../Badges';
+import type { Constraint, Level, Polarity, Preference, Rationale } from '../../lib/types';
 import { ConstraintEditor } from '../ConstraintEditor';
 import { Field, splitList, splitPath } from '../Field';
+import { LevelPicker } from '../Level';
 import { useToast } from '../Toasts';
 import { Card } from '../ui/Card';
+import { RationaleFields } from './Rationale';
 
 export function PreferenceEditor({ p, onDone }: { p: Preference; onDone: () => void }) {
   const toast = useToast();
@@ -17,7 +18,8 @@ export function PreferenceEditor({ p, onDone }: { p: Preference; onDone: () => v
   const [tags, setTags] = useState(p.tags.join(', '));
   const [applies, setApplies] = useState(p.applies_to.join(', '));
   const [constraints, setConstraints] = useState<Constraint[]>(p.constraints);
-  const [strength, setStrength] = useState(p.strength);
+  const [level, setLevel] = useState<Level>(p.level);
+  const [why, setWhy] = useState<Rationale>(p);
   const [busy, setBusy] = useState(false);
 
   const save = async () => {
@@ -32,7 +34,10 @@ export function PreferenceEditor({ p, onDone }: { p: Preference; onDone: () => v
         tags: splitList(tags),
         applies_to: splitList(applies),
         constraints: constraints.filter((c) => c.metric.trim()),
-        strength,
+        level,
+        why: why.why?.trim() || null,
+        example_good: why.example_good?.trim() || null,
+        example_bad: why.example_bad?.trim() || null,
       });
       toast('Правило обновлено, векторы пересчитаны');
       onDone();
@@ -92,10 +97,8 @@ export function PreferenceEditor({ p, onDone }: { p: Preference; onDone: () => v
       </Field>
       <span className="eyebrow">Ограничения</span>
       <ConstraintEditor value={constraints} onChange={setConstraints} />
-      <div className="flex items-center gap-3">
-        <span className="eyebrow">Сила</span>
-        <StrengthDots value={strength} onChange={setStrength} />
-      </div>
+      <LevelPicker value={level} onChange={setLevel} />
+      <RationaleFields value={why} onChange={(patch) => setWhy({ ...why, ...patch })} />
       <div className="card-foot">
         <button className="btn btn-primary" onClick={save} disabled={busy || !statement.trim()}>
           {busy ? 'Сохраняю…' : 'Сохранить'}

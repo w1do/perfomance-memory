@@ -1,4 +1,5 @@
 /** Формы данных в Qdrant и ответах сервиса: точка правила, папка, узел дерева, фильтр, результаты. */
+import type { Level } from './level.js';
 import type { Constraint, HistoryEntry, Polarity, Source, Enrichment } from './types.js';
 
 /** Full payload of a point in the preferences collection. Every field is always present. */
@@ -14,7 +15,12 @@ export interface PreferencePayload {
   tags: string[];
   constraints: Constraint[];
   constraint_metrics: string[];
+  level: Level;
+  /** 5 / 3 / 1 — выводится из level */
   strength: number;
+  why: string | null;
+  example_good: string | null;
+  example_bad: string | null;
   language: string;
   folder_id: string;
   folder_name: string;
@@ -56,6 +62,7 @@ export interface PreferenceFilter {
   tags?: string[] | undefined;
   metric?: string | undefined;
   min_strength?: number | undefined;
+  level?: Level | Level[] | undefined;
   updated_after?: string | undefined;
   source?: Source | undefined;
   include_inactive?: boolean | undefined;

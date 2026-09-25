@@ -50,6 +50,8 @@ export function buildPreferenceFilter(f: PreferenceFilter = {}): QFilter {
   if (tags.length) must.push({ key: 'tags', match: { any: tags } });
   if (f.metric) must.push({ key: 'constraint_metrics', match: { value: f.metric.toLowerCase() } });
   if (f.min_strength !== undefined) must.push({ key: 'strength', range: { gte: f.min_strength } });
+  const levels = list(f.level);
+  if (levels.length) must.push(matchOne('level', levels));
   if (f.updated_after) must.push({ key: 'updated_at', range: { gt: f.updated_after } });
   if (f.source) must.push({ key: 'source', match: { value: f.source } });
   return { must };

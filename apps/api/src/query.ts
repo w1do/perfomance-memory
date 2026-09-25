@@ -23,6 +23,7 @@ export const filterQuerySchema = z.object({
   tags: csv,
   metric: z.string().trim().min(1).optional(),
   min_strength: z.coerce.number().int().min(1).max(5).optional(),
+  level: z.enum(['hard', 'default', 'taste']).optional(),
   updated_after: z.iso.datetime({ offset: true }).or(z.iso.date()).optional(),
   source: z.enum(['voice', 'text', 'mcp']).optional(),
 });
@@ -43,6 +44,7 @@ export function toFilter(q: z.infer<typeof filterQuerySchema>): PreferenceFilter
     tags: q.tags,
     metric: q.metric,
     min_strength: q.min_strength,
+    level: q.level,
     updated_after: q.updated_after,
     source: q.source,
   };

@@ -1,12 +1,14 @@
 import { findNode } from '../folders/tree.js';
+import { LEVEL_LABEL, LEVEL_MEANING, LEVELS, type Level } from '../level.js';
 import type { Constraint, FolderNode, PreferencePayload } from '../types.js';
 
 export function formatConstraint(c: Constraint): string {
   return `${c.metric} ${c.operator} ${String(c.value)}${c.unit ? ` ${c.unit}` : ''}`;
 }
 
-export function strengthDots(n: number): string {
-  return '●'.repeat(n) + '○'.repeat(Math.max(0, 5 - n));
+/** «жёстко» / «по умолчанию» / «вкус» — как агенту относиться к правилу. */
+export function levelBadge(level: Level): string {
+  return `**${LEVEL_LABEL[level]}**`;
 }
 
 function byImportance(a: PreferencePayload, b: PreferencePayload): number {
@@ -14,8 +16,11 @@ function byImportance(a: PreferencePayload, b: PreferencePayload): number {
 }
 
 function renderPreference(p: PreferencePayload): string[] {
-  const lines = [`- ${p.statement} · сила ${p.strength}/5 ${strengthDots(p.strength)}`];
+  const lines = [`- ${p.statement} · ${levelBadge(p.level)}`];
   if (p.details) lines.push(`  ${p.details}`);
+  if (p.why) lines.push(`  Почему: ${p.why}`);
+  if (p.example_good) lines.push(`  Так: ${p.example_good}`);
+  if (p.example_bad) lines.push(`  Не так: ${p.example_bad}`);
   if (p.constraints.length) {
     lines.push(
       `  Ограничения: ${p.constraints.map((c) => `\`${formatConstraint(c)}\``).join(', ')}`,
@@ -34,7 +39,7 @@ function heading(level: number, text: string): string {
 
 /**
  * The main PREFERENCES.md: the whole folder tree as headings, rules under them,
- * constraints in monospace, strength next to each rule.
+ * constraints in monospace, level next to each rule (legend at the top).
  */
 export function buildMarkdown(
   tree: FolderNode[],
@@ -64,7 +69,8 @@ export function buildMarkdown(
     `# ${title}`,
     '',
     `> Обновлено: ${generated} · правил: ${ruleCount} · папок: ${folderCount(roots)}`,
-    '> Сила — от 1 до 5. Ограничения (constraints) — обязательные условия.',
+    `> Уровни: ${LEVELS.map((l) => `**${LEVEL_LABEL[l]}** — ${LEVEL_MEANING[l]}`).join('; ')}.`,
+    '> Ограничения (constraints) — обязательные условия.',
     '',
   ];
   if (!roots.length) {

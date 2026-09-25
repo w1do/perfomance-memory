@@ -1,7 +1,7 @@
 /**
  * Главный вход агента (get_context_for_task): по задаче определяет домены и проект, сужает по индексам и отдаёт:
  * все правила названного проекта (без обрезки top_k), ранжированные правила доменов (top_k), все жёсткие
- * ограничения этих доменов и число правил, которые подошли, но не показаны (omitted) — агент видит, что отрезано.
+ * правила этих доменов (уровень «жёстко» или ограничения) и число правил, которые подошли, но не показаны (omitted) — агент видит, что отрезано.
  */
 import type { AiProvider, TaskContext } from '../ai/provider.js';
 import type { FolderService } from '../folders/service.js';
@@ -17,7 +17,7 @@ export interface TaskContextResult {
   project_rules: PreferencePayload[];
   /** ранжированные правила доменов задачи (вне проекта), не больше top_k */
   preferences: ScoredPreference[];
-  /** правила доменов с ограничениями, не попавшие в ранжированный список */
+  /** жёсткие правила доменов (уровень «жёстко» или с ограничениями), не попавшие в ранжированный список */
   hard_constraints: PreferencePayload[];
   /** сколько правил доменов подошло, но не показано */
   omitted: number;
@@ -83,7 +83,9 @@ export async function contextForTask(
 
   const inScope = await deps.prefs.all({ ...scope, applies_to: applies });
   const hard_constraints = ctx.domains.length
-    ? inScope.filter((p) => p.constraints.length && !shown.has(p.id)).sort(byImportance)
+    ? inScope
+        .filter((p) => (p.constraints.length || p.level === 'hard') && !shown.has(p.id))
+        .sort(byImportance)
     : [];
   hard_constraints.forEach((p) => shown.add(p.id));
   const omitted = inScope.filter((p) => !shown.has(p.id)).length;

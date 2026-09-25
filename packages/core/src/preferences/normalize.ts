@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { sanitizePath, withPolarityLeaf } from '../folders/tree.js';
 import { cleanTags, guardProject, guardTargets } from './guards.js';
+import { rationale, text } from './rationale.js';
 import {
   PROJECTS_ROOT,
   constraintSchema,
@@ -28,15 +29,13 @@ const looseSchema = z.object({
   tags: z.array(z.string()).optional(),
   constraints: z.array(z.unknown()).optional(),
   conditions: z.array(z.unknown()).optional(),
+  level: z.string().optional(),
   strength: z.number().optional(),
+  why: z.string().nullable().optional(),
+  example_good: z.string().nullable().optional(),
+  example_bad: z.string().nullable().optional(),
   language: z.string().optional(),
 });
-
-/** Models sometimes return the string "null" instead of null. */
-const text = (v: string | null | undefined): string | null => {
-  const t = v?.trim() ?? '';
-  return t && !['null', 'none', 'n/a', '-', 'нет'].includes(t.toLowerCase()) ? t : null;
-};
 
 const uniqLower = (items: string[], max: number): string[] => {
   const out: string[] = [];
@@ -137,7 +136,7 @@ export function normalizeEnrichment(
     applies_to: guardTargets(uniqLower(r.applies_to ?? [], 12), opts.sourceText),
     tags: cleanTags(uniqLower(r.tags ?? [], 7)),
     constraints,
-    strength: Math.min(5, Math.max(1, Math.round(r.strength ?? 3))),
+    ...rationale(r),
     language: (r.language ?? 'ru').trim().toLowerCase() || 'ru',
   });
   if (!result.success) {

@@ -1,11 +1,13 @@
 /**
- * Поля превью в две колонки (от 768): слева правило, пояснение, полярность и сила; справа папка с datalist,
+ * Поля превью в две колонки (от 768): слева правило, пояснение, полярность, уровень, «почему» и «так / не так»; справа папка с datalist,
  * бейджи «папка есть / будет создана», похожие папки, домен, проект, applies_to, теги. Роли — токены --role-*.
  */
 import type { Enrichment, Preview } from '../../lib/types';
-import { Badge, PathLabel, StrengthDots } from '../Badges';
+import { Badge, PathLabel } from '../Badges';
 import { Field } from '../Field';
 import { Icon } from '../Icon';
+import { LevelPicker } from '../Level';
+import { RationaleFields } from '../preference/Rationale';
 
 export type MetaText = { path: string; tags: string; applies: string };
 
@@ -59,10 +61,8 @@ export function PreviewMetaSection({
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-3">
-          <span className="eyebrow">Сила</span>
-          <StrengthDots value={e.strength} onChange={(strength) => set({ strength })} />
-        </div>
+        <LevelPicker value={e.level} onChange={(level) => set({ level })} />
+        <RationaleFields value={e} onChange={set} />
       </section>
 
       <section className="flex min-w-0 flex-col gap-sm">

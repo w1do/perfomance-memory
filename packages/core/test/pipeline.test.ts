@@ -19,7 +19,7 @@ describe('pipeline: enrichment → folder → conflict → upsert → PREFERENCE
       domain: 'ai_assistants',
       applies_to: ['chatgpt'],
       tags: ['chatgpt', 'тон', 'ответы'],
-      strength: 4,
+      level: 'default',
     })
       .script('люблю, когда ChatGPT отвечает дерзко', {
         statement: 'Дерзкие ответы ChatGPT',
@@ -28,7 +28,7 @@ describe('pipeline: enrichment → folder → conflict → upsert → PREFERENCE
         domain: 'ai_assistants',
         applies_to: ['chatgpt'],
         tags: ['chatgpt', 'тон', 'ответы'],
-        strength: 4,
+        level: 'default',
       })
       .script('снова: люблю, когда ChatGPT отвечает дерзко', {
         statement: 'Дерзкие ответы ChatGPT',
@@ -37,7 +37,8 @@ describe('pipeline: enrichment → folder → conflict → upsert → PREFERENCE
         domain: 'ai_assistants',
         applies_to: ['chatgpt'],
         tags: ['chatgpt', 'тон', 'ответы'],
-        strength: 5,
+        level: 'hard',
+        why: 'так веселее',
       })
       .script('не люблю файлы с кодом больше 100 строк', {
         statement: 'Файлы с кодом больше 100 строк',
@@ -113,7 +114,7 @@ describe('pipeline: enrichment → folder → conflict → upsert → PREFERENCE
     expect((await core.folders.byPath(['ChatGPT', 'Люблю']))?.preference_count).toBe(1);
   });
 
-  it('same meaning → duplicate: only updated_at and strength change', async () => {
+  it('same meaning → duplicate: level only gets stricter, empty why is filled', async () => {
     const [prev] = await core.prefs.all({ folder: 'ChatGPT' });
     const r = await core.prefs.save({
       text: 'снова: люблю, когда ChatGPT отвечает дерзко',
@@ -122,7 +123,9 @@ describe('pipeline: enrichment → folder → conflict → upsert → PREFERENCE
     expect(r.action).toBe('duplicate');
     expect(r.preference?.id).toBe(prev?.id);
     const now = await core.prefs.get(prev?.id as string);
+    expect(now.level).toBe('hard');
     expect(now.strength).toBe(5);
+    expect(now.why).toBe('так веселее');
     expect(now.history).toHaveLength(1);
     expect(now.updated_at > (prev?.updated_at ?? '')).toBe(true);
   });
@@ -167,7 +170,14 @@ describe('pipeline: enrichment → folder → conflict → upsert → PREFERENCE
 
   it('manual PATCH flips polarity, moves the rule and re-embeds', async () => {
     const [p] = await core.prefs.all({ folder: 'Рыбалка' });
-    const u = await core.prefs.update(p?.id as string, { polarity: 'like', strength: 2 });
+    const u = await core.prefs.update(p?.id as string, {
+      polarity: 'like',
+      level: 'taste',
+      why: '',
+    });
+    expect(u.level).toBe('taste');
+    expect(u.strength).toBe(1);
+    expect(u.why).toBeNull();
     expect(u.folder_path).toEqual(['Рыбалка', 'Люблю']);
     expect(u.history.at(-1)?.reason).toBe('ручная правка');
     await core.prefs.update(p?.id as string, { polarity: 'dislike' });

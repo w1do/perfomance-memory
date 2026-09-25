@@ -100,7 +100,8 @@ describe('REST API (signed in)', () => {
     expect(pv.enrichment.folder_path).toEqual(['ChatGPT', 'Не люблю']);
     expect(pv.folder_exists).toBe(false);
 
-    pv.enrichment.strength = 5; // user edited the preview
+    pv.enrichment.level = 'hard'; // user edited the preview
+    pv.enrichment.why = 'грубость сбивает с работы';
     const saved = await call({
       method: 'POST',
       url: '/api/preferences',
@@ -109,11 +110,14 @@ describe('REST API (signed in)', () => {
     expect(saved.statusCode).toBe(200);
     const s = saved.json();
     expect(s.action).toBe('created');
+    expect(s.preference.level).toBe('hard');
     expect(s.preference.strength).toBe(5);
+    expect(s.preference.why).toBe('грубость сбивает с работы');
     expect(s.preference.source).toBe('voice');
 
     const list = await call('/api/preferences?folder=ChatGPT&polarity=dislike&applies_to=chatgpt');
     expect(list.json().items).toHaveLength(1);
+    expect((await call('/api/preferences?level=taste')).json().items).toHaveLength(0);
     const search = await call('/api/preferences?q=грубые%20ответы');
     expect(search.json().items[0].preference.id).toBe(s.preference.id);
 
@@ -126,7 +130,7 @@ describe('REST API (signed in)', () => {
     const badPatch = await call({
       method: 'PATCH',
       url: `/api/preferences/${s.preference.id}`,
-      payload: { strength: 9 },
+      payload: { level: 'extreme' },
     });
     expect(badPatch.statusCode).toBe(400);
 

@@ -12,6 +12,7 @@ import type { Logger } from './logger.js';
 import { PreferenceService } from './preferences/service.js';
 import { createQdrant } from './qdrant/client.js';
 import { existsSync } from 'node:fs';
+import { migrateLevels } from './preferences/migrate.js';
 import { reindexAll, reindexBackupPath } from './qdrant/reindex.js';
 import { ensureSchema, waitForQdrant } from './qdrant/setup.js';
 import { Store } from './qdrant/store.js';
@@ -77,6 +78,7 @@ export function createCore(opts: CoreOptions) {
       log.info('waiting for the api service to finish reindexing');
       await new Promise((r) => setTimeout(r, 5000));
     }
+    if (options.owner) await migrateLevels(store, log);
     if (options.owner && config.SEED_DEMO) {
       await seedDemo(store, folders, ai, log);
     }

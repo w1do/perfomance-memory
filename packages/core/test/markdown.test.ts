@@ -28,7 +28,11 @@ const pref = (over: Partial<PreferencePayload>): PreferencePayload => ({
   tags: [],
   constraints: [],
   constraint_metrics: [],
+  level: 'default',
   strength: 3,
+  why: null,
+  example_good: null,
+  example_bad: null,
   language: 'ru',
   folder_id: '',
   folder_name: '',
@@ -55,20 +59,24 @@ describe('PREFERENCES.md', () => {
       id: '1',
       folder_id: 'c',
       statement: 'Файлы с кодом больше 100 строк',
-      strength: 4,
+      level: 'hard',
+      strength: 5,
+      why: 'Длинный файл трудно читать',
       constraints: [{ metric: 'file_lines', operator: '<=', value: 100, unit: 'lines' }],
       tags: ['код'],
     }),
   ];
 
-  it('renders the whole tree as headings with rules, constraints and strength', () => {
+  it('renders the whole tree as headings with rules, constraints, level and why', () => {
     const md = buildMarkdown(tree, prefs, { generatedAt: 'T' });
     expect(md).toContain('# Мои предпочтения');
     expect(md).toContain('## Программирование');
     expect(md).toContain('### Код');
     expect(md).toContain('#### Не люблю');
     expect(md).toContain('## Рыбалка');
-    expect(md).toContain('- Файлы с кодом больше 100 строк · сила 4/5 ●●●●○');
+    expect(md).toContain('- Файлы с кодом больше 100 строк · **жёстко**');
+    expect(md).toContain('  Почему: Длинный файл трудно читать');
+    expect(md).toContain('**вкус** — учитывать');
     expect(md).toContain('`file_lines <= 100 lines`');
     expect(md.indexOf('## Программирование')).toBeLessThan(md.indexOf('#### Не люблю'));
   });

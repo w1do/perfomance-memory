@@ -25,7 +25,7 @@ describe('metadata filters and hybrid search', () => {
     expect(await core.prefs.all({ folder: 'Программирование / Код / Не люблю' })).toHaveLength(1);
   });
 
-  it('domain, project, polarity, applies_to, tags, metric, strength, updated_after', async () => {
+  it('domain, project, polarity, applies_to, tags, metric, strength, level, updated_after', async () => {
     expect(await core.prefs.all({ domain: 'fishing' })).toHaveLength(2);
     expect(await core.prefs.all({ project: 'Семейный чат' })).toHaveLength(2);
     expect(await core.prefs.all({ domain: 'programming', polarity: 'like' })).toHaveLength(2);
@@ -34,6 +34,9 @@ describe('metadata filters and hybrid search', () => {
     const metric = await core.prefs.all({ metric: 'function_lines' });
     expect(metric.map((p) => p.statement)).toEqual(['Функции длиннее 40 строк']);
     expect((await core.prefs.all({ min_strength: 4 })).every((p) => p.strength >= 4)).toBe(true);
+    const hard = await core.prefs.all({ level: 'hard' });
+    expect(hard.length).toBeGreaterThan(0);
+    expect(hard.every((p) => p.level === 'hard' && p.strength === 5)).toBe(true);
     expect(await core.prefs.all({ updated_after: '2999-01-01T00:00:00Z' })).toHaveLength(0);
   });
 

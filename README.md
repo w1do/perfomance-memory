@@ -2,7 +2,7 @@
 
 Личная память «люблю / не люблю» на любые темы: код, ИИ-ассистенты, рыбалка, путешествия, конкретные проекты.
 Вы говорите фразу голосом или пишете текстом — сервис раскладывает её в структуру (правило, полярность, папка,
-домен, проект, теги, ограничения, сила), кладёт в дерево папок, индексирует в Qdrant и собирает главный файл
+домен, проект, теги, ограничения, уровень «жёстко / по умолчанию / вкус», «почему» и пример «так / не так»), кладёт в дерево папок, индексирует в Qdrant и собирает главный файл
 `PREFERENCES.md`. Агенты (Claude Code, Claude Desktop, ChatGPT) читают всё это через MCP-сервер.
 
 ## Demo
@@ -249,18 +249,35 @@ flowchart LR
 
 1. Запись голоса → Whisper (`OPENAI_STT_MODEL`, `STT_LANGUAGE`) → текст можно поправить. Есть и текстовый ввод.
 2. Обогащение (`OPENAI_LLM_MODEL`, строго JSON): statement, details, polarity, folder_path, domain, project,
-   applies_to, tags, constraints, strength, language. Модель видит текущее дерево и топ-3 похожих папки из Qdrant,
+   applies_to, tags, constraints, level, why, example_good, example_bad, language. Модель видит текущее дерево и топ-3 похожих папки из Qdrant,
    новую папку создаёт, только если ни одна не подходит. Модель извлекает условие буквально («больше 100 строк» →
    `file_lines > 100`), а требование выводит код: для «не люблю» оператор инвертируется (`file_lines <= 100`).
+   Уровень модель берёт из слов («никогда», «всегда» → жёстко; «немного», «иногда» → вкус; иначе — по умолчанию),
+   `why` и примеры — только если пользователь сам их сказал. `strength` выводится из уровня: 5 / 3 / 1.
    Цели `applies_to`, которых нет во фразе (кроме `me` и `any_ai`), отбрасываются — сервис не выдумывает данные.
-3. Эмбеддинги: dense (`OPENAI_EMBED_MODEL`, `EMBED_DIM`, cosine) по statement + details + folder_path + tags;
+3. Эмбеддинги: dense (`OPENAI_EMBED_MODEL`, `EMBED_DIM`, cosine) по statement + details + why + folder_path + tags;
    sparse BM25 считается в core (токенизация со стеммингом Snowball для русского и английского, `modifier: idf`).
 4. Конфликт/дубль: гибридный поиск (RRF) с фильтром по domain (и project) → кандидаты со сходством ≥
    `CONFLICT_SCORE` (максимум из косинуса векторов и косинуса исходных фраз — противоположные правила лежат в разных
    папках «Люблю»/«Не люблю», и их векторы расходятся) → топ-5 → LLM решает: **противоречит** (правило обновляется,
    прежняя версия уходит в `history[]`, при смене полярности — перенос в соседнюю папку), **дублирует** (обновляются
-   `updated_at` и `strength`) или **новое**.
+   `updated_at`, уровень становится строже из двух, пустые «почему» и примеры дополняются) или **новое**.
 5. Upsert в Qdrant и пересборка `PREFERENCES.md` (volume `data`, `GET /api/export.md`, `?folder=<путь>` — ветка).
+
+## Уровни правил, «почему» и «так / не так»
+
+| Уровень | Что делает агент |
+|---|---|
+| **жёстко** (`hard`) | соблюдает всегда; нарушение — дефект, как у ограничения `constraints` |
+| **по умолчанию** (`default`) | соблюдает; отступить может, только назвав причину |
+| **вкус** (`taste`) | учитывает, если нет причин поступить иначе |
+
+`get_context_for_task` всегда отдаёт все правила уровня «жёстко» из доменов задачи, даже если они не попали в
+top_k. У правила может быть **«почему»** (причина со слов пользователя — по ней агент решает пограничные случаи) и
+пример **«так» / «не так»**. Всё это видно на карточке, редактируется в превью и в редакторе, передаётся в MCP
+`add_preference` (`level`, `why`, `example_good`, `example_bad`). Правила, сохранённые до появления уровней,
+переводятся автоматически при старте api: с ограничениями или силой 5 → «жёстко», сила 1–2 → «вкус», остальные →
+«по умолчанию».
 
 ## Qdrant: payload и индексы
 
@@ -278,7 +295,10 @@ flowchart LR
 | `applies_to[]`, `tags[]` | string[] | keyword |
 | `constraints[]` | `{ metric, operator, value, unit }[]` | — (ищутся через `constraint_metrics`) |
 | `constraint_metrics[]` | string[] | keyword |
-| `strength` | 1–5 | integer |
+| `level` | `hard` «жёстко» \| `default` «по умолчанию» \| `taste` «вкус» | keyword |
+| `strength` | 5 / 3 / 1 — выводится из `level` (поле из ТЗ, фильтр `min_strength`) | integer |
+| `why` | string / null — «почему», только со слов пользователя | text |
+| `example_good`, `example_bad` | string / null — пример «так» / «не так» | — |
 | `language` | string | keyword |
 | `folder_id` | uuid | keyword |
 | `folder_name` | string | — |
@@ -305,7 +325,7 @@ path[], ancestors[], depth, domain, description, preference_count, created_at }`
 `POST /api/transcribe` (webm/ogg/mp3/m4a до `MAX_AUDIO_MB`) · `POST /api/preferences/preview` ·
 `POST /api/preferences` (`{ text | preview, source }` → `{ action, preference, replaced? }`) ·
 `GET /api/preferences` (фильтры `folder` — с вложенными, `domain`, `project`, `polarity`, `applies_to`, `tags`,
-`metric`, `min_strength`, `updated_after`; `q` — гибридный поиск) · `PATCH/DELETE /api/preferences/:id` ·
+`metric`, `level`, `min_strength`, `updated_after`; `q` — гибридный поиск) · `PATCH/DELETE /api/preferences/:id` ·
 `GET/POST/PATCH/DELETE /api/folders` · `GET /api/facets` · `GET /api/stats` · `GET /api/export.md` ·
 `GET /api/status` (сервисы и активные модели, без секретов) · `GET /api/health`.
 

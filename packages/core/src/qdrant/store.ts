@@ -1,3 +1,4 @@
+import { asPreference } from './payloadDefaults.js';
 import type { QdrantClient, Schemas } from '@qdrant/js-client-rest';
 import type { Config } from '../env.js';
 import type { SparseVector } from '../text/bm25.js';
@@ -32,7 +33,7 @@ export class Store {
 
   async getPreference(id: string): Promise<PreferencePayload | null> {
     const res = await this.qdrant.retrieve(this.prefs, { ids: [id], with_payload: true });
-    return (res[0]?.payload as unknown as PreferencePayload | undefined) ?? null;
+    return res[0]?.payload ? asPreference(res[0].payload) : null;
   }
 
   async upsertPreference(
@@ -99,7 +100,7 @@ export class Store {
     });
     const next = res.next_page_offset;
     return {
-      items: res.points.map((p) => p.payload as unknown as PreferencePayload),
+      items: res.points.map((p) => asPreference(p.payload)),
       next: typeof next === 'string' || typeof next === 'number' ? String(next) : null,
     };
   }
@@ -167,7 +168,7 @@ export class Store {
     return res.points.map((p) => {
       const vec = (p.vector as Record<string, unknown> | undefined)?.[DENSE];
       return {
-        preference: p.payload as unknown as PreferencePayload,
+        preference: asPreference(p.payload),
         score: p.score,
         ...(Array.isArray(vec) ? { dense: vec as number[] } : {}),
       };

@@ -1,14 +1,16 @@
 /**
  * Карточка правила (только просмотр): Card в краске полярности; полярность показывает колонка, теги — нейтральные,
- * сила/путь/дата — одной тихой строкой; действия на hover; перетаскивание на папку; редактор и история — preference/*.
+ * «почему» и «так / не так» — если есть; уровень/путь/дата — одной тихой строкой; действия на hover; перетаскивание на папку; редактор и история — preference/*.
  */
 import { useId, useState } from 'react';
 import { api } from '../lib/api';
 import type { Preference } from '../lib/types';
-import { Badge, ConstraintList, PathLabel, StrengthDots, Tag, formatDate } from './Badges';
+import { Badge, ConstraintList, PathLabel, Tag, formatDate } from './Badges';
 import { Icon } from './Icon';
+import { LEVEL_HINT, LevelBadge } from './Level';
 import { PreferenceEditor } from './preference/PreferenceEditor';
 import { PreferenceHistory } from './preference/PreferenceHistory';
+import { RationaleView } from './preference/Rationale';
 import { useToast } from './Toasts';
 import { Card } from './ui/Card';
 import { Tip } from './ui/Tip';
@@ -74,6 +76,7 @@ export function PreferenceCard({ p, index = 0 }: { p: Preference; index?: number
           </p>
         )
       )}
+      <RationaleView r={p} />
       <ConstraintList items={p.constraints} />
       {(p.applies_to.length > 0 || p.tags.length > 0) && (
         <div className="flex flex-wrap items-center gap-1.5">
@@ -88,10 +91,10 @@ export function PreferenceCard({ p, index = 0 }: { p: Preference; index?: number
         </div>
       )}
       <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 border-t border-border pt-sm text-caption text-muted">
-        <Tip content="Сила 1–5: насколько строго агент должен соблюдать">
+        <Tip content={LEVEL_HINT[p.level]}>
           {(t) => (
             <span {...t} className="inline-flex rounded-full p-1">
-              <StrengthDots value={p.strength} />
+              <LevelBadge level={p.level} />
             </span>
           )}
         </Tip>

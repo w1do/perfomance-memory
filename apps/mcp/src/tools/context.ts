@@ -1,11 +1,14 @@
 /**
  * get_context_for_task — главный инструмент. Ответ: жёсткие ограничения, ВСЕ правила названного проекта,
- * правила по задаче (top_k), прочие правила с ограничениями и строка «ещё N не показано», если что-то отрезано.
+ * правила по задаче (top_k), прочие жёсткие правила (уровень или ограничения) и строка «ещё N не показано», если что-то отрезано.
  */
 import { z } from 'zod';
 import {
   formatByFolder,
   formatConstraint,
+  LEVEL_LABEL,
+  LEVEL_MEANING,
+  LEVELS,
   type Core,
   type PreferencePayload,
 } from '@preference-memory/core';
@@ -26,7 +29,8 @@ export function registerContextTool(server: Server, core: Core): void {
     description:
       "Call this at the start of any task to load the user's likes, dislikes and hard constraints. " +
       'Detects the relevant domain/project from the task description (name the project in the task to get ALL its rules), ' +
-      'filters by metadata and returns the rules grouped by folder, with all constraints. Reports how many matching rules were not shown.',
+      'filters by metadata and returns the rules grouped by folder, with all constraints and every hard rule. Each rule has a level: ' +
+      'hard (violation = defect), default (deviate only with a stated reason), taste (mild). Reports how many matching rules were not shown.',
     parameters: z.object({
       task: z
         .string()
@@ -50,13 +54,14 @@ export function registerContextTool(server: Server, core: Core): void {
         .join(' · ');
       const parts = [
         `Контекст задачи — ${scope || 'все области'}`,
+        `Уровни: ${LEVELS.map((l) => `«${LEVEL_LABEL[l]}» — ${LEVEL_MEANING[l]}`).join('; ')}.`,
         hardConstraintsBlock([...res.project_rules, ...ranked, ...res.hard_constraints]),
         res.project_rules.length
           ? `# Проект ${res.context.project} — все правила (${res.project_rules.length})\n${formatByFolder(res.project_rules)}`
           : '',
         ranked.length ? `# Правила по задаче\n${formatByFolder(ranked)}` : '',
         res.hard_constraints.length
-          ? `# Прочие правила с ограничениями\n${formatByFolder(res.hard_constraints)}`
+          ? `# Прочие жёсткие правила\n${formatByFolder(res.hard_constraints)}`
           : '',
         res.omitted
           ? `Ещё ${res.omitted} правил в этих областях не показано — get_preferences с запросом или get_folder вернут их.`

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { levelSchema } from './level.js';
 
 export const KNOWN_DOMAINS = [
   'programming',
@@ -57,6 +58,7 @@ export const historyEntrySchema = z.object({
   polarity: polaritySchema,
   folder_path: z.array(z.string()),
   strength: z.number().int(),
+  level: levelSchema.optional(),
   constraints: z.array(constraintSchema),
   raw_text: z.string(),
   changed_at: z.string(),
@@ -76,9 +78,17 @@ export const enrichmentSchema = z.object({
   applies_to: z.array(z.string().trim().toLowerCase().min(1).max(40)).max(12),
   tags: z.array(z.string().trim().toLowerCase().min(1).max(40)).max(7),
   constraints: z.array(constraintSchema).max(10),
+  /** жёстко / по умолчанию / вкус; strength выводится из него */
+  level: levelSchema,
   strength: z.number().int().min(1).max(5),
+  /** почему правило важно — только со слов пользователя */
+  why: z.string().trim().max(400).nullable(),
+  /** пример «так» и «не так» — только если пользователь его привёл */
+  example_good: z.string().trim().max(400).nullable(),
+  example_bad: z.string().trim().max(400).nullable(),
   language: z.string().trim().toLowerCase().min(2).max(8),
 });
 export type Enrichment = z.infer<typeof enrichmentSchema>;
 
 export * from './payloadTypes.js';
+export * from './level.js';

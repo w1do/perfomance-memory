@@ -1,4 +1,13 @@
 export type Polarity = 'like' | 'dislike';
+/** жёстко / по умолчанию / вкус */
+export type Level = 'hard' | 'default' | 'taste';
+
+/** «почему» и пример «так / не так» — только со слов пользователя */
+export interface Rationale {
+  why: string | null;
+  example_good: string | null;
+  example_bad: string | null;
+}
 
 export interface Constraint {
   metric: string;
@@ -13,13 +22,14 @@ export interface HistoryEntry {
   polarity: Polarity;
   folder_path: string[];
   strength: number;
+  level?: Level;
   constraints: Constraint[];
   raw_text: string;
   changed_at: string;
   reason: string | null;
 }
 
-export interface Preference {
+export interface Preference extends Rationale {
   id: string;
   statement: string;
   details: string | null;
@@ -31,6 +41,7 @@ export interface Preference {
   tags: string[];
   constraints: Constraint[];
   constraint_metrics: string[];
+  level: Level;
   strength: number;
   language: string;
   folder_id: string;
@@ -58,7 +69,7 @@ export interface FolderNode {
   children: FolderNode[];
 }
 
-export interface Enrichment {
+export interface Enrichment extends Rationale {
   kind: 'preference' | 'project_only';
   statement: string;
   details: string | null;
@@ -69,6 +80,7 @@ export interface Enrichment {
   applies_to: string[];
   tags: string[];
   constraints: Constraint[];
+  level: Level;
   strength: number;
   language: string;
 }
@@ -123,6 +135,6 @@ export interface Filters {
   applies_to?: string;
   tags?: string;
   metric?: string;
-  min_strength?: number;
+  level?: Level;
   q?: string;
 }

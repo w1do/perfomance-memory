@@ -14,7 +14,7 @@ export function registerWriteTool(server: Server, core: Core): void {
   server.addTool({
     name: 'add_preference',
     description:
-      'Save a new user preference from a natural-language phrase. Runs the same pipeline as the UI: enrichment, folder choice, conflict/duplicate detection.',
+      'Save a new user preference from a natural-language phrase. Runs the same pipeline as the UI: enrichment (level, why, examples), folder choice, conflict/duplicate detection.',
     parameters: z.object({
       text: z
         .string()
@@ -26,6 +26,27 @@ export function registerWriteTool(server: Server, core: Core): void {
         .max(80)
         .optional()
         .describe('Project name if the rule belongs to a project'),
+      level: z
+        .enum(['hard', 'default', 'taste'])
+        .optional()
+        .describe(
+          'hard = violating it is a defect; default = follow unless there is a stated reason; taste = mild preference. Omit to infer from the phrase',
+        ),
+      why: z
+        .string()
+        .max(400)
+        .optional()
+        .describe('Why the rule matters, only as the user said it'),
+      example_good: z
+        .string()
+        .max(400)
+        .optional()
+        .describe('Example of doing it right, if the user gave one'),
+      example_bad: z
+        .string()
+        .max(400)
+        .optional()
+        .describe('Example of doing it wrong, if the user gave one'),
     }),
     annotations: { readOnlyHint: false, destructiveHint: false, title: 'Add preference' },
     execute: logged(core, 'add_preference', async (a) => {
@@ -33,6 +54,12 @@ export function registerWriteTool(server: Server, core: Core): void {
         text: a.text,
         source: 'mcp',
         projectHint: a.project ?? null,
+        explicit: {
+          level: a.level,
+          why: a.why,
+          example_good: a.example_good,
+          example_bad: a.example_bad,
+        },
       });
       const lines = [`Результат: ${LABELS[r.action]} · папка: ${r.folder.path.join(' › ')}`];
       if (r.preference) lines.push(formatByFolder([r.preference]));

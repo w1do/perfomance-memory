@@ -47,7 +47,10 @@ export class FakeAi implements AiProvider {
       applies_to: [],
       tags: [],
       constraints: [],
-      strength: 3,
+      level: 'default',
+      why: null,
+      example_good: null,
+      example_bad: null,
       language: 'ru',
       ...e,
     };

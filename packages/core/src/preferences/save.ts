@@ -1,9 +1,10 @@
 /**
  * Сохранение обогащённого правила: только проект → папка проекта; иначе проверка конфликта и одно из трёх —
- * дубль (обновить дату и силу), конфликт (обновить, прежняя версия в history, при смене полярности — соседний
+ * дубль (обновить дату, усилить уровень, дополнить «почему»), конфликт (обновить, прежняя версия в history, при смене полярности — соседний
  * лист), новое (создать). Лист «Люблю»/«Не люблю» гарантирован withPolarityLeaf.
  */
 import { withPolarityLeaf } from '../folders/tree.js';
+import { LEVEL_STRENGTH, stricter } from '../level.js';
 import { bm25Document } from '../text/bm25.js';
 import {
   PROJECTS_ROOT,
@@ -38,15 +39,19 @@ export async function saveEnrichment(
   const now = new Date().toISOString();
 
   if (target && decision.decision === 'duplicate') {
-    const updated: PreferencePayload = {
-      ...target,
-      strength: Math.max(target.strength, e.strength),
+    // повтор не ослабляет правило и дополняет пустые «почему» и примеры, но не затирает их
+    const level = stricter(target.level, e.level);
+    const extra = {
+      level,
+      strength: LEVEL_STRENGTH[level],
+      why: target.why ?? e.why,
+      example_good: target.example_good ?? e.example_good,
+      example_bad: target.example_bad ?? e.example_bad,
       updated_at: now,
     };
-    await deps.store.setPreferencePayload(target.id, {
-      strength: updated.strength,
-      updated_at: now,
-    });
+    const updated: PreferencePayload = { ...target, ...extra };
+    if (extra.why !== target.why) await upsertWithVectors(deps, updated);
+    else await deps.store.setPreferencePayload(target.id, extra);
     const folder = await folders.byId(target.folder_id);
     log.info({ action: 'duplicate', id: target.id }, 'pipeline');
     return { action: 'duplicate', preference: updated, folder, reason: decision.reason };
@@ -68,7 +73,11 @@ export async function saveEnrichment(
       tags: e.tags,
       constraints: e.constraints,
       constraint_metrics: constraintMetrics(e.constraints),
+      level: e.level,
       strength: e.strength,
+      why: e.why,
+      example_good: e.example_good,
+      example_bad: e.example_bad,
       language: e.language,
       ...folderFields(folder),
       source,

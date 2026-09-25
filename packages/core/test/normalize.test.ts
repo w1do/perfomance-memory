@@ -38,7 +38,9 @@ describe('enrichment normalisation and metadata', () => {
     expect(e.constraints).toEqual([
       { metric: 'file_lines', operator: '<=', value: 100, unit: 'lines' },
     ]);
+    expect(e.level).toBe('hard'); // старая сила 9 без уровня → жёстко
     expect(e.strength).toBe(5);
+    expect(e.why).toBeNull();
     expect(e.language).toBe('ru');
     // polarity leaf is aligned with polarity
     expect(e.folder_path).toEqual(['Программирование', 'Код', 'Не люблю']);
@@ -154,7 +156,11 @@ describe('enrichment normalisation and metadata', () => {
         'tags',
         'constraints',
         'constraint_metrics',
+        'level',
         'strength',
+        'why',
+        'example_good',
+        'example_bad',
         'language',
         'folder_id',
         'folder_name',

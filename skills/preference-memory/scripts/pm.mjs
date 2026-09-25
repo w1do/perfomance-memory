@@ -10,10 +10,12 @@
 // Usage:
 //   node pm.mjs context "<task description>" [--applies-to php,claude] [--top-k 10]
 //   node pm.mjs search "<query>" [--domain fishing] [--folder "Программирование/Код"] [--project Дача]
-//                                [--polarity like|dislike] [--applies-to chatgpt] [--tags a,b] [--top-k 10]
+//                                [--polarity like|dislike] [--level hard|default|taste] [--applies-to chatgpt]
+//                                [--tags a,b] [--top-k 10]
 //   node pm.mjs folder "<path>" [--cursor X] [--limit 50]
 //   node pm.mjs folders | projects | project "<name>"
-//   node pm.mjs add "<phrase in the user's words>" [--project Дача]
+//   node pm.mjs add "<phrase in the user's words>" [--project Дача] [--level hard|default|taste]
+//                   [--why "..."] [--good "так"] [--bad "не так"]
 //   node pm.mjs main                     # whole PREFERENCES.md
 //   node pm.mjs tools                    # list available tools
 import { existsSync, readFileSync } from 'node:fs';
@@ -118,6 +120,7 @@ try {
         folder: flags.folder,
         project: flags.project,
         polarity: flags.polarity,
+        level: flags.level,
         applies_to: list(flags['applies-to']),
         tags: list(flags.tags),
         top_k: num(flags['top-k']),
@@ -136,7 +139,14 @@ try {
       await call('get_project', { name: arg, cursor: flags.cursor });
       break;
     case 'add':
-      await call('add_preference', { text: arg, project: flags.project });
+      await call('add_preference', {
+        text: arg,
+        project: flags.project,
+        level: flags.level,
+        why: flags.why,
+        example_good: flags.good,
+        example_bad: flags.bad,
+      });
       break;
     case 'main':
       out(await rpc('resources/read', { uri: 'preferences://main' }, token));

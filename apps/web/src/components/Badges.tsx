@@ -1,7 +1,4 @@
-/**
- * Бейджи, точки силы, ограничения и путь. Краски — роли из lib/roles (токены --role-*);
- * точки силы в просмотре — цвет роли ближайшего data-role (--r), в редактировании — accent.
- */
+/** Бейджи, ограничения и путь. Краски — роли из lib/roles (токены --role-*). Уровень правила — Level.tsx. */
 import type { ReactNode } from 'react';
 import type { Role } from '../lib/roles';
 import type { Constraint, Polarity } from '../lib/types';
@@ -55,41 +52,6 @@ export function PolarityBadge({ polarity }: { polarity: Polarity }) {
       <Icon name={polarity === 'like' ? 'like' : 'dislike'} className="text-caption" />
       {polarity === 'like' ? 'люблю' : 'не люблю'}
     </Badge>
-  );
-}
-
-export function StrengthDots({
-  value,
-  onChange,
-}: {
-  value: number;
-  onChange?: (v: number) => void;
-}) {
-  return (
-    <span
-      className="inline-flex items-center gap-1"
-      aria-label={`Сила ${value} из 5`}
-      role={onChange ? 'radiogroup' : 'img'}
-    >
-      {[1, 2, 3, 4, 5].map((n) =>
-        onChange ? (
-          <button
-            key={n}
-            type="button"
-            role="radio"
-            aria-checked={n === value}
-            aria-label={`Сила ${n}`}
-            onClick={() => onChange(n)}
-            className={`h-3 w-3 rounded-full border border-accent ${n <= value ? 'bg-accent' : 'bg-transparent'}`}
-          />
-        ) : (
-          <span
-            key={n}
-            className={`h-2 w-2 rounded-full ${n <= value ? 'bg-[var(--r)]' : 'bg-border-strong'}`}
-          />
-        ),
-      )}
-    </span>
   );
 }
 

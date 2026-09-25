@@ -1,10 +1,12 @@
 /** Входы сервиса правил: сохранение, ручная правка (zod), список, ключи фасетов и ошибка с HTTP-статусом. */
 import { z } from 'zod';
+import { levelSchema } from '../level.js';
 import {
   constraintSchema,
   domainSchema,
   folderPathSchema,
   polaritySchema,
+  type Enrichment,
   type Source,
 } from '../types.js';
 
@@ -23,6 +25,9 @@ export interface SaveInput {
   preview?: { text: string; enrichment: unknown } | undefined;
   source: Source;
   projectHint?: string | null | undefined;
+  /** явно заданные уровень, «почему» и примеры (MCP add_preference) — важнее вывода модели */
+  explicit?:
+    Partial<Pick<Enrichment, 'level' | 'why' | 'example_good' | 'example_bad'>> | undefined;
 }
 
 export const preferencePatchSchema = z
@@ -36,7 +41,10 @@ export const preferencePatchSchema = z
     applies_to: z.array(z.string().trim().toLowerCase().min(1).max(40)).max(12),
     tags: z.array(z.string().trim().toLowerCase().min(1).max(40)).max(7),
     constraints: z.array(constraintSchema).max(10),
-    strength: z.number().int().min(1).max(5),
+    level: levelSchema,
+    why: z.string().trim().max(400).nullable(),
+    example_good: z.string().trim().max(400).nullable(),
+    example_bad: z.string().trim().max(400).nullable(),
   })
   .partial()
   .strict();
@@ -57,4 +65,5 @@ export const FACET_KEYS = [
   'constraint_metrics',
   'source',
   'language',
+  'level',
 ] as const;

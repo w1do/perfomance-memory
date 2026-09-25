@@ -24,6 +24,10 @@ export function registerSearchTool(server: Server, core: Core): void {
         ),
       project: z.string().max(80).optional().describe('Project name'),
       polarity: z.enum(['like', 'dislike']).optional(),
+      level: z
+        .enum(['hard', 'default', 'taste'])
+        .optional()
+        .describe('hard = must, default = follow unless justified, taste = mild'),
       applies_to: csvList.optional().describe('Targets, e.g. ["chatgpt"], ["php"]'),
       tags: csvList.optional().describe('Any of these tags'),
       top_k: topK,
@@ -37,6 +41,7 @@ export function registerSearchTool(server: Server, core: Core): void {
           domain: a.domain,
           project: a.project,
           polarity: a.polarity,
+          level: a.level,
           applies_to: a.applies_to,
           tags: a.tags,
         },
