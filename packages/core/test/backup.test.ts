@@ -56,7 +56,7 @@ describe('Qdrant backups', () => {
     expect((await core.prefs.search('рыбалка', {}, 3))[0]?.preference.id).toBe(
       saved.preference?.id,
     );
-  });
+  }, 180_000); // снимки Qdrant тяжелее обычных запросов, особенно при параллельных тестах
 
   it('keeps the newest N copies, drops *.partial, reports freshness', async () => {
     const root = mkdtempSync(join(tmpdir(), 'pm-retention-'));
