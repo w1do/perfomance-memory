@@ -1,6 +1,6 @@
 /**
  * get_context_for_task — главный инструмент. Ответ: жёсткие ограничения, ВСЕ правила названного проекта и ВСЕ общие
- * правила его стека (наследование),
+ * правила, которые он наследует (по меткам, темам и областям),
  * правила по задаче (top_k), прочие жёсткие правила (уровень или ограничения) и строка «ещё N не показано», если что-то отрезано.
  */
 import { z } from 'zod';
@@ -15,6 +15,14 @@ import {
   type PreferencePayload,
 } from '@preference-memory/core';
 import { csvList, logged, topK, type Server } from './common.js';
+
+function inheritedBy(scope: { targets: string[]; topics: string[] }): string {
+  const parts = [
+    scope.targets.length ? `метки: ${scope.targets.join(', ')}` : '',
+    scope.topics.length ? `темы: ${scope.topics.join(', ')}` : '',
+  ].filter(Boolean);
+  return parts.length ? `Наследуются по ${parts.join('; ')} и по областям проекта.` : '';
+}
 
 function hardConstraintsBlock(prefs: PreferencePayload[]): string {
   const lines = prefs.flatMap((p) =>
@@ -31,7 +39,7 @@ export function registerContextTool(server: Server, core: Core): void {
     description:
       "Call this at the start of any task to load the user's likes, dislikes and hard constraints. " +
       'Detects the relevant domain/project from the task description (name the project in the task to get ALL its rules ' +
-      'and ALL general rules of its stack, e.g. PHP/Laravel/CI), ' +
+      'and ALL general rules it inherits by its labels, topics and domains), ' +
       'filters by metadata and returns the rules grouped by folder, with all constraints and every hard rule. Each rule has a level: ' +
       'hard (violation = defect), default (deviate only with a stated reason), taste (mild). Reports how many matching rules were not shown.',
     parameters: z.object({
@@ -60,15 +68,15 @@ export function registerContextTool(server: Server, core: Core): void {
         `Уровни: ${LEVELS.map((l) => `«${LEVEL_LABEL[l]}» — ${LEVEL_MEANING[l]}`).join('; ')}.`,
         hardConstraintsBlock([
           ...res.project_rules,
-          ...res.stack_rules,
+          ...res.inherited,
           ...ranked,
           ...res.hard_constraints,
         ]),
         res.project_rules.length
           ? `# Проект ${res.context.project} — все правила (${res.project_rules.length})\n${formatByFolder(res.project_rules)}`
           : '',
-        res.stack_rules.length
-          ? `# Общие правила стека проекта (${res.stack_rules.length}) — ${res.stack.join(', ')}\n${formatByFolder(res.stack_rules)}`
+        res.inherited.length
+          ? `# Общие правила, которые наследует проект (${res.inherited.length})\n${inheritedBy(res.scope)}\n${formatByFolder(res.inherited)}`
           : '',
         ranked.length ? `# Правила по задаче\n${formatByFolder(ranked)}` : '',
         res.hard_constraints.length
@@ -80,7 +88,7 @@ export function registerContextTool(server: Server, core: Core): void {
       ];
       const count =
         res.project_rules.length +
-        res.stack_rules.length +
+        res.inherited.length +
         ranked.length +
         res.hard_constraints.length;
       const text = parts.filter(Boolean).join('\n\n');

@@ -117,8 +117,6 @@ export interface Status {
   public_url: string;
   auth_enabled: boolean;
   max_audio_mb: number;
-  /** словарь applies_to; чего нет здесь, сервис переносит в теги */
-  targets: string[];
   links: {
     telegram: string;
     contact: string;

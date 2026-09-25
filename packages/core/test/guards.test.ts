@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { withPolarityLeaf } from '../src/folders/tree.js';
 import { normalizeEnrichment } from '../src/preferences/normalize.js';
-import { canonicalTarget, detectTargets, targetMentioned } from '../src/text/glossary.js';
+import { canonicalTarget, detectTargets, targetMentioned } from '../src/text/targets.js';
 
 const base = {
   kind: 'preference',
@@ -30,29 +30,45 @@ describe('voice & folder quality guards', () => {
     expect(normalizeEnrichment(base).folder_path).toEqual(['ClaudeCode', 'Люблю']);
   });
 
-  it('transliterated names keep their target; a named target the model skipped is extracted', () => {
+  it('labels come from the data, in any sphere; a known label the model skipped is extracted', () => {
     expect(canonicalTarget('Claude Code')).toBe('claude_code');
-    expect(canonicalTarget('ChatGPT')).toBe('chatgpt');
-    expect(targetMentioned('когда клауды-коды пишут кратко', 'claude_code')).toBe(true);
-    expect(detectTargets('деплою через Dokploy на Laravel')).toEqual(['laravel', 'dokploy']);
+    expect(canonicalTarget('GitLab CI')).toBe('gitlab_ci');
+    expect(targetMentioned('пишу на ларавел', 'laravel')).toBe(true); // транслит
+    expect(detectTargets('деплою через Dokploy на Laravel', ['laravel', 'dokploy', 'php'])).toEqual(
+      ['laravel', 'dokploy'],
+    );
+    expect(detectTargets('Claude Code пишет', ['claude', 'claude_code'])).toEqual(['claude_code']);
+    const fishing = normalizeEnrichment(
+      { ...base, applies_to: ['Спиннинг'] },
+      { sourceText: 'на рыбалке люблю ловить на спиннинг' },
+    );
+    expect(fishing.applies_to).toEqual(['спиннинг']);
+    // модель поправила написание в statement — метка засчитывается
     const text = 'люблю, когда клауды-коды задают вопросы перед реализацией';
+    const said = { ...base, statement: 'Claude Code задаёт вопросы' };
     expect(
-      normalizeEnrichment({ ...base, applies_to: ['claude_code'] }, { sourceText: text })
+      normalizeEnrichment({ ...said, applies_to: ['claude_code'] }, { sourceText: text })
         .applies_to,
     ).toEqual(['claude_code']);
     expect(
-      normalizeEnrichment({ ...base, applies_to: [] }, { sourceText: text }).applies_to,
+      normalizeEnrichment(
+        { ...said, applies_to: [] },
+        { sourceText: text, knownTargets: ['claude_code', 'php'] },
+      ).applies_to,
     ).toEqual(['claude_code']);
-    // invented tech is still dropped
+    // выдуманное не проходит
     expect(
-      normalizeEnrichment({ ...base, applies_to: ['react'] }, { sourceText: text }).applies_to,
-    ).toEqual(['claude_code']);
+      normalizeEnrichment({ ...said, applies_to: ['react'] }, { sourceText: text }).applies_to,
+    ).toEqual([]);
   });
 
   it('a general CI rule filed under an unnamed project goes to «Деплой и CI»', () => {
     const e = normalizeEnrichment(
       { ...base, domain: 'devops', project: 'SaaS', folder_path: ['Проекты', 'SaaS', 'Люблю'] },
-      { sourceText: 'для меня важно, чтобы каждый проект сразу настраивался CI/CD в GitLab' },
+      {
+        sourceText: 'для меня важно, чтобы каждый проект сразу настраивался CI/CD в GitLab',
+        knownTargets: ['gitlab', 'php'],
+      },
     );
     expect(e.project).toBeNull();
     expect(e.folder_path).toEqual(['Деплой и CI', 'Люблю']);

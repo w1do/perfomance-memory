@@ -1,12 +1,14 @@
 /**
  * Превью: обогащение фразы без сохранения. Модель видит текущее дерево папок, топ-3 похожих папки, известные
- * домены и проекты; ответ проходит normalizeEnrichment с защитами от выдумок (guards.ts). Опечатки в новых
- * папках и тегах исправляются: имя, отличающееся от существующего на 1–2 буквы, заменяется существующим (fuzzy.ts).
+ * домены, проекты и метки; ответ проходит normalizeEnrichment с защитами от выдумок (guards.ts), «Разное» с
+ * известной сферой получает тему из данных (topic.ts). Опечатки в новых
+ * папках, тегах и метках исправляются: имя, отличающееся от существующего на 1–2 буквы, заменяется существующим (fuzzy.ts).
  */
 import { closest, snapPath } from '../text/fuzzy.js';
 import { KNOWN_DOMAINS, PROJECTS_ROOT, type Enrichment, type Preview } from '../types.js';
 import type { PrefDeps } from './deps.js';
 import { normalizeEnrichment } from './normalize.js';
+import { rescueMisc } from './topic.js';
 import { PreferenceError } from './schemas.js';
 
 export async function knownDomains(deps: PrefDeps): Promise<string[]> {
@@ -22,11 +24,12 @@ export async function previewText(
   const clean = text.trim();
   if (!clean) throw new PreferenceError('Пустой текст', 400);
   const [queryVector] = await deps.ai.embed([clean]);
-  const [tree, similar, projects, domains] = await Promise.all([
+  const [tree, similar, projects, domains, targets] = await Promise.all([
     deps.folders.pathLines(),
     deps.folders.similar(queryVector as number[], 3),
     deps.folders.projects(),
     knownDomains(deps),
+    knownTargets(deps),
   ]);
   const raw = await deps.ai.enrich({
     text: clean,
@@ -34,19 +37,34 @@ export async function previewText(
     similarFolders: similar,
     knownDomains: domains,
     projects: projects.map((p) => p.name),
+    knownTargets: targets,
     projectHint: projectHint ?? null,
   });
-  const enrichment = await snapTypos(
+  const normalized = await rescueMisc(
     deps,
-    normalizeEnrichment(raw, { sourceText: clean, projectHint: projectHint ?? null }),
-    tree,
+    normalizeEnrichment(raw, {
+      sourceText: clean,
+      projectHint: projectHint ?? null,
+      knownTargets: targets,
+    }),
   );
+  const enrichment = await snapTypos(deps, normalized, tree, targets);
   const existing = await deps.folders.byPath(enrichment.folder_path);
   return { text: clean, enrichment, folder_exists: existing !== null, similar_folders: similar };
 }
 
-/** Папка и теги с опечаткой приклеиваются к уже существующим. */
-async function snapTypos(deps: PrefDeps, e: Enrichment, tree: string[]): Promise<Enrichment> {
+/** Метки applies_to, которые уже есть в памяти: модель переиспользует их вместо новых. */
+export async function knownTargets(deps: PrefDeps): Promise<string[]> {
+  return (await deps.store.facet('applies_to', {}, 500)).map((t) => t.value);
+}
+
+/** Папка, теги и метки с опечаткой приклеиваются к уже существующим. */
+async function snapTypos(
+  deps: PrefDeps,
+  e: Enrichment,
+  tree: string[],
+  targets: string[],
+): Promise<Enrichment> {
   const tags = (await deps.store.facet('tags', {}, 1000)).map((t) => t.value);
   const snapped = e.tags.map((t) => closest(t, tags) ?? t);
   const folder_path = snapPath(
@@ -59,5 +77,6 @@ async function snapTypos(deps: PrefDeps, e: Enrichment, tree: string[]): Promise
     folder_path,
     project: inProject ? (folder_path[1] ?? e.project) : e.project,
     tags: [...new Set(snapped)],
+    applies_to: [...new Set(e.applies_to.map((t) => closest(t, targets) ?? t))],
   };
 }

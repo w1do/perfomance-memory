@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { TARGETS, type Core } from '@preference-memory/core';
+import type { Core } from '@preference-memory/core';
 import { filterQuerySchema, toFilter } from '../query.js';
 
 export interface MetaOptions {
@@ -60,8 +60,6 @@ export function metaRoutes(app: FastifyInstance, core: Core, opts: MetaOptions):
       auth_enabled: true,
       search: { top_k: c.SEARCH_TOP_K, conflict_score: c.CONFLICT_SCORE },
       max_audio_mb: c.MAX_AUDIO_MB,
-      // словарь applies_to: чего нет здесь, сервис переносит в теги
-      targets: TARGETS,
       // публичные ссылки для шапки и подвала (не секреты); пустые — не показываются
       links: {
         telegram: c.TELEGRAM_URL,

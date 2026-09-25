@@ -1,15 +1,17 @@
 /**
  * Защиты от выдумок модели (ТЗ: «не выдумывать данные»): проект — только если назван; цели applies_to — только
- * названные во фразе (с учётом синонимов словаря); названные, но пропущенные моделью цели извлекаются из фразы;
- * applies_to — только из словаря TARGETS, остальное уходит в теги (splitTargets); теги без слов полярности.
+ * названные во фразе (как есть или транслитом); уже известные в памяти метки, пропущенные моделью, извлекаются из
+ * фразы; файлы и пути — не метки, а теги (splitTargets); me / any_ai не хранятся; теги без слов полярности.
  */
-import { polarityFolderName, sameName } from '../folders/tree.js';
-import { TARGETS, canonicalTarget, detectTargets, targetMentioned } from '../text/glossary.js';
+import { polarityFolderName, polarityOfFolderName, sameName } from '../folders/tree.js';
+import { canonicalTarget, detectTargets, looksLikePath, targetMentioned } from '../text/targets.js';
 import { mentions } from '../text/mentions.js';
-import { PROJECTS_ROOT, type Polarity } from '../types.js';
+import { tokenize } from '../text/tokenize.js';
+import { MISC_FOLDER, PROJECTS_ROOT, type Polarity } from '../types.js';
 
 /** Тематическая папка для домена, когда модель положила правило в проект, который не назван. */
-const DOMAIN_TOPIC: Record<string, string> = {
+/** Название темы по умолчанию для сферы, пока в памяти нет её правил. */
+export const DOMAIN_TOPIC: Record<string, string> = {
   programming: 'Программирование',
   devops: 'Деплой и CI',
   ai_assistants: 'ИИ-ассистенты',
@@ -42,36 +44,50 @@ export function guardProject(args: {
   const named = (p: string) =>
     (args.projectHint ? sameName(args.projectHint, p) : false) || mentions(args.sourceText, p);
   if (project && !named(project)) project = null;
-  const pathProject =
-    path[0] !== undefined && sameName(path[0], PROJECTS_ROOT) ? path[1] : undefined;
-  if (pathProject && !named(pathProject)) {
+  const inProjects = path[0] !== undefined && sameName(path[0], PROJECTS_ROOT);
+  const pathProject = inProjects ? path[1] : undefined;
+  // «Проекты» без названного проекта («ларавел-проект», «проекты вообще») — это общее правило, не проект
+  const leafOnly = pathProject === undefined || polarityOfFolderName(pathProject) !== null;
+  if (inProjects && (leafOnly || !named(pathProject as string))) {
     if (domain.trim().toLowerCase() === 'project') domain = 'other';
-    const topic = DOMAIN_TOPIC[domain.trim().toLowerCase()] ?? 'Разное';
+    const topic = DOMAIN_TOPIC[domain.trim().toLowerCase()] ?? MISC_FOLDER;
     path = [topic, polarityFolderName(args.polarity)];
   }
   return { path, project, domain };
 }
 
-export function guardTargets(targets: string[], sourceText?: string): string[] {
+/**
+ * sourceText — фраза пользователя (с исправленным моделью написанием), known — метки, уже известные в памяти.
+ * Без sourceText (правка превью) метки остаются как введены.
+ */
+export function guardTargets(
+  targets: string[],
+  sourceText?: string,
+  known: string[] = [],
+): string[] {
   const canon = [...new Set(targets.map(canonicalTarget).filter(Boolean))];
   if (sourceText === undefined) return canon.slice(0, 12);
   const kept = canon.filter((t) => !ABSTRACT_TARGETS.has(t) && targetMentioned(sourceText, t));
-  const found = kept.some((t) => TARGETS.includes(t)) ? [] : detectTargets(sourceText);
+  const found = kept.some((t) => !looksLikePath(t)) ? [] : detectTargets(sourceText, known);
   return [...new Set([...found, ...kept])].slice(0, 12);
 }
 
-/** Словарь applies_to: известные цели остаются, me/any_ai убираются, прочее (файлы, пакеты, классы) — в теги. */
+/** me / any_ai убираются; файлы, пути и пакеты с «/» — не предмет правила, они уходят в теги. */
 export function splitTargets(values: string[]): { targets: string[]; extra: string[] } {
   const targets: string[] = [];
   const extra: string[] = [];
   for (const v of values) {
-    const t = canonicalTarget(v);
+    const path = looksLikePath(v);
+    const t = path ? v.trim().toLowerCase() : canonicalTarget(v);
     if (!t || ABSTRACT_TARGETS.has(t)) continue;
-    const bucket = TARGETS.includes(t) ? targets : extra;
+    const bucket = path ? extra : targets;
     if (!bucket.includes(t)) bucket.push(t);
   }
   return { targets, extra };
 }
 
+/** Теги без слов полярности, чисел и служебных слов («не», «и», «для»). */
 export const cleanTags = (tags: string[]): string[] =>
-  tags.filter((t) => !POLARITY_TAGS.has(t) && !/^\d+$/.test(t) && t.length > 1);
+  tags.filter(
+    (t) => !POLARITY_TAGS.has(t) && !/^\d+$/.test(t) && t.length > 1 && tokenize(t).length > 0,
+  );

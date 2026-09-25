@@ -37,14 +37,8 @@ const looseSchema = z.object({
   language: z.string().optional(),
 });
 
-const uniqLower = (items: string[], max: number): string[] => {
-  const out: string[] = [];
-  for (const raw of items) {
-    const v = raw.trim().toLowerCase();
-    if (v && !out.includes(v)) out.push(v);
-  }
-  return out.slice(0, max);
-};
+const uniqLower = (items: string[], max: number): string[] =>
+  [...new Set(items.map((raw) => raw.trim().toLowerCase()).filter(Boolean))].slice(0, max);
 
 const NEGATE: Record<Constraint['operator'], Constraint['operator']> = {
   '<': '>=',
@@ -76,7 +70,7 @@ export function constraintMetrics(constraints: Constraint[]): string[] {
  */
 export function normalizeEnrichment(
   raw: unknown,
-  opts: { sourceText?: string; projectHint?: string | null } = {},
+  opts: { sourceText?: string; projectHint?: string | null; knownTargets?: string[] } = {},
 ): Enrichment {
   const parsed = looseSchema.safeParse(raw);
   if (!parsed.success) {
@@ -125,7 +119,9 @@ export function normalizeEnrichment(
       .replace(/^_+|_+$/g, '') || 'other';
   if (domain === 'other' && project && path[0] === PROJECTS_ROOT) domain = 'project';
   const details = text(r.details);
-  const split = splitTargets(guardTargets(uniqLower(r.applies_to ?? [], 12), opts.sourceText));
+  const said = opts.sourceText === undefined ? undefined : `${opts.sourceText} ${r.statement}`;
+  const targets = guardTargets(uniqLower(r.applies_to ?? [], 12), said, opts.knownTargets);
+  const split = splitTargets(targets);
   const result = enrichmentSchema.safeParse({
     kind,
     statement: statement.charAt(0).toUpperCase() + statement.slice(1),

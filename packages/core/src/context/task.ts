@@ -1,6 +1,6 @@
 /**
  * Главный вход агента (get_context_for_task): по задаче определяет домены и проект, сужает по индексам и отдаёт:
- * все правила названного проекта (без обрезки top_k), все общие правила его стека (stack.ts), ранжированные правила доменов (top_k), все жёсткие
+ * все правила названного проекта (без обрезки top_k), все общие правила, которые он наследует (scope.ts), ранжированные правила доменов (top_k), все жёсткие
  * правила этих доменов (уровень «жёстко» или ограничения) и число правил, которые подошли, но не показаны (omitted) — агент видит, что отрезано.
  */
 import type { AiProvider, TaskContext } from '../ai/provider.js';
@@ -9,17 +9,17 @@ import { sameName } from '../folders/tree.js';
 import type { Logger } from '../logger.js';
 import type { PreferenceService } from '../preferences/service.js';
 import { mentions } from '../text/mentions.js';
-import { foreignTo, projectStack } from './stack.js';
+import { foreignTo, projectScope } from './scope.js';
 import type { PreferencePayload, ScoredPreference } from '../types.js';
 
 export interface TaskContextResult {
   context: TaskContext;
   /** все правила названного проекта, сильные первыми */
   project_rules: PreferencePayload[];
-  /** общие правила стека проекта — целиком, без ранжирования (stack.ts) */
-  stack_rules: PreferencePayload[];
-  /** стек проекта: цели его правил с подразумеваемыми */
-  stack: string[];
+  /** общие правила, которые наследует проект, — целиком, без ранжирования (scope.ts) */
+  inherited: PreferencePayload[];
+  /** область проекта: метки и темы, по которым правила наследуются */
+  scope: { targets: string[]; topics: string[] };
   /** ранжированные правила доменов задачи (вне проекта), не больше top_k */
   preferences: ScoredPreference[];
   /** жёсткие правила доменов (уровень «жёстко» или с ограничениями), не попавшие в ранжированный список */
@@ -71,13 +71,13 @@ export async function contextForTask(
   const project_rules = ctx.project
     ? (await deps.prefs.all({ project: ctx.project, applies_to: applies })).sort(byImportance)
     : [];
-  const { targets: stack, rules } = ctx.project
-    ? await projectStack(deps.prefs, project_rules, ctx.domains, applies)
-    : { targets: [], rules: [] };
-  const stack_rules = rules.sort(byImportance);
-  const shown = new Set([...project_rules, ...stack_rules].map((p) => p.id));
-  const base = { context: ctx, project_rules, stack_rules, stack };
-  const foreign = ctx.project ? foreignTo(ctx.project, stack) : () => false;
+  const { rules, ...area } = ctx.project
+    ? await projectScope(deps.prefs, project_rules, ctx, applies)
+    : { targets: [], topics: [], rules: [] };
+  const inherited = rules.sort(byImportance);
+  const shown = new Set([...project_rules, ...inherited].map((p) => p.id));
+  const base = { context: ctx, project_rules, inherited, scope: area };
+  const foreign = ctx.project ? foreignTo(ctx.project, area.targets) : () => false;
 
   // Домены задачи; без доменов и без проекта — поиск по всей памяти.
   const scope = ctx.domains.length ? { domain: ctx.domains } : ctx.project ? null : {};

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { splitTargets } from '../src/preferences/guards.js';
+import { cleanTags, splitTargets } from '../src/preferences/guards.js';
 import { closest, levenshtein, snapPath } from '../src/text/fuzzy.js';
-import { targetMentioned } from '../src/text/glossary.js';
+import { targetMentioned } from '../src/text/targets.js';
 
 describe('typos and the applies_to dictionary', () => {
   it('snaps a misspelled name to an existing one, never a different short word', () => {
@@ -24,17 +24,23 @@ describe('typos and the applies_to dictionary', () => {
     expect(snapPath(['Путешествия', 'Люблю'], known)).toEqual(['Путешествия', 'Люблю']);
   });
 
-  it('keeps only dictionary targets; me/any_ai are dropped, the rest goes to tags', () => {
+  it('any subject is a label; me/any_ai are dropped, files and paths go to tags', () => {
     expect(
-      splitTargets(['PHP', 'me', 'any_ai', 'service.php', 'Клод код', 'spatie/laravel-data']),
+      splitTargets(['PHP', 'me', 'any_ai', 'service.php', 'Спиннинг', 'spatie/laravel-data']),
     ).toEqual({
-      targets: ['php', 'claude_code'],
+      targets: ['php', 'спиннинг'],
       extra: ['service.php', 'spatie/laravel-data'],
     });
   });
 
-  it('short aliases match whole words only', () => {
+  it('labels match other word forms; short ones never inside other words', () => {
     expect(targetMentioned('студия W1DO Digital', 'git')).toBe(false);
     expect(targetMentioned('коммиты в git короткие', 'git')).toBe(true);
+    expect(targetMentioned('ночные перелёты с детьми', 'дети')).toBe(true);
+    expect(targetMentioned('ловить щуку на спиннинг', 'щука')).toBe(true);
+    expect(cleanTags(['ночные', 'не', 'для', 'перелёты', 'не люблю'])).toEqual([
+      'ночные',
+      'перелёты',
+    ]);
   });
 });

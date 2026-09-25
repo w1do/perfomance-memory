@@ -14,6 +14,7 @@ export const KNOWN_DOMAINS = [
 ] as const;
 
 export const PROJECTS_ROOT = 'Проекты';
+export const MISC_FOLDER = 'Разное';
 export const LIKE_FOLDER = 'Люблю';
 export const DISLIKE_FOLDER = 'Не люблю';
 export const PATH_SEPARATOR = '/';

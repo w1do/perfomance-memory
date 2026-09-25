@@ -1,5 +1,5 @@
 import type { FastifyInstance } from 'fastify';
-import { STT_TERMS, flattenTree, type Core } from '@preference-memory/core';
+import { flattenTree, type Core } from '@preference-memory/core';
 
 const EXT_BY_MIME: Record<string, string> = {
   'audio/webm': 'webm',
@@ -14,12 +14,17 @@ const EXT_BY_MIME: Record<string, string> = {
 };
 const ALLOWED_EXT = new Set(['webm', 'ogg', 'oga', 'mp3', 'm4a', 'mp4']);
 
-/** Подсказка Whisper: термины словаря + названия папок и проектов, чтобы они распознавались верно. */
+/**
+ * Подсказка Whisper из данных пользователя: названия папок и проектов и метки applies_to (claude_code → «claude
+ * code»), чтобы его собственные названия распознавались верно — в любой сфере.
+ */
 async function sttPrompt(core: Core): Promise<string> {
-  const names = flattenTree(await core.folders.tree())
+  const [tree, targets] = await Promise.all([core.folders.tree(), core.prefs.facets()]);
+  const names = flattenTree(tree)
     .map((n) => n.name)
     .filter((n) => !['Люблю', 'Не люблю'].includes(n));
-  return [...new Set([...STT_TERMS, ...names])].join(', ').slice(0, 800);
+  const labels = (targets.applies_to ?? []).map((t) => t.value.replace(/_/g, ' '));
+  return [...new Set([...names, ...labels])].join(', ').slice(0, 800);
 }
 
 export function transcribeRoutes(app: FastifyInstance, core: Core): void {

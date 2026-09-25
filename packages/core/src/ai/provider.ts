@@ -7,6 +7,8 @@ export interface EnrichInput {
   similarFolders: { path: string[]; score: number }[];
   knownDomains: string[];
   projects: string[];
+  /** метки applies_to, уже известные в памяти пользователя */
+  knownTargets: string[];
   projectHint?: string | null | undefined;
 }
 
