@@ -1,0 +1,131 @@
+/* Фон страницы: сияние (fixed) из записей каталога градиентов brand_storm (tokens-fx.css) и сетка первого
+   экрана grid-tile.svg (absolute, уезжает при прокрутке); горошек texture.svg — на папках и входе. */
+@layer components {
+  .app-shell {
+    position: relative;
+    isolation: isolate; /* без него слои z-index: -1 уходят под фон body */
+    min-block-size: 100dvh;
+  }
+  .aurora {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    contain: strict;
+  }
+  .aurora > span {
+    position: absolute;
+  }
+  .aurora__wash {
+    inset: 0 0 auto 0;
+    block-size: 100vh;
+    background: var(--aurora-wash);
+    opacity: var(--aurora-wash-o);
+    -webkit-mask-image: linear-gradient(180deg, #000 30%, transparent 100%);
+    mask-image: linear-gradient(180deg, #000 30%, transparent 100%);
+  }
+  .aurora__spot {
+    aspect-ratio: 1;
+    border-radius: 50%;
+    -webkit-mask-image: radial-gradient(closest-side, #000 20%, transparent 100%);
+    mask-image: radial-gradient(closest-side, #000 20%, transparent 100%);
+  }
+  .aurora__spot--a {
+    inline-size: 72vmax;
+    top: -26vmax;
+    left: -18vmax;
+    background: var(--aurora-a);
+    opacity: var(--aurora-a-o);
+  }
+  .aurora__spot--b {
+    inline-size: 56vmax;
+    top: 8vh;
+    right: -20vmax;
+    background: var(--aurora-b);
+    opacity: var(--aurora-b-o);
+  }
+  .aurora__spot--c {
+    inline-size: 60vmax;
+    bottom: -28vmax;
+    left: 28vw;
+    background: var(--aurora-c);
+    opacity: var(--aurora-c-o);
+  }
+  .aurora__dots {
+    inset: 0;
+    background-color: var(--color-text);
+    opacity: var(--texture-opacity);
+    -webkit-mask: url('../assets/backgrounds/texture.svg') 0 0 / 20px 20px repeat;
+    mask: url('../assets/backgrounds/texture.svg') 0 0 / 20px 20px repeat;
+  }
+  .grid-band {
+    position: absolute;
+    inset: 0 0 auto 0;
+    block-size: 110vh;
+    z-index: -1;
+    overflow: hidden;
+    pointer-events: none;
+    -webkit-mask-image: radial-gradient(ellipse 75% 65% at 40% 18%, #000 0%, transparent 75%);
+    mask-image: radial-gradient(ellipse 75% 65% at 40% 18%, #000 0%, transparent 75%);
+  }
+  .grid-band__tile {
+    position: absolute;
+    inset: -200px 0 0 -200px; /* запас ровно на один шаг сдвига */
+    background-color: var(--color-border-strong);
+    opacity: var(--grid-o);
+    -webkit-mask: url('../assets/backgrounds/grid-tile.svg') 0 0 / 200px 200px repeat;
+    mask: url('../assets/backgrounds/grid-tile.svg') 0 0 / 200px 200px repeat;
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    .aurora {
+      opacity: 0.5;
+    }
+  }
+  @media (forced-colors: active) {
+    .aurora,
+    .grid-band {
+      display: none;
+    }
+  }
+}
+
+/* decor_motion: drift/breathe пятен и drift сетки — только transform, только там, где фон движется */
+@media (prefers-reduced-motion: no-preference) and (min-width: 768px) and (hover: hover) {
+  .aurora__spot,
+  .grid-band__tile {
+    will-change: transform;
+  }
+  .aurora__spot--a {
+    animation: aurora-a 48s ease-in-out infinite alternate;
+  }
+  .aurora__spot--b {
+    animation: aurora-b 56s ease-in-out infinite alternate;
+  }
+  .aurora__spot--c {
+    animation: aurora-c 64s ease-in-out infinite alternate;
+  }
+  .grid-band__tile {
+    animation: grid-drift 60s linear infinite;
+  }
+}
+@keyframes aurora-a {
+  to {
+    transform: translate3d(9vmax, 6vmax, 0) scale(1.08);
+  }
+}
+@keyframes aurora-b {
+  to {
+    transform: translate3d(-11vmax, 9vmax, 0) scale(1.05);
+  }
+}
+@keyframes aurora-c {
+  to {
+    transform: translate3d(-7vmax, -10vmax, 0) scale(1.1); /* breathe */
+  }
+}
+@keyframes grid-drift {
+  to {
+    transform: translate3d(200px, 200px, 0); /* бесшовно: ровно одна плитка */
+  }
+}

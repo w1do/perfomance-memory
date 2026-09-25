@@ -1,0 +1,542 @@
+[
+  {
+    "key": "mic",
+    "kind": "icon",
+    "file": "icons/mic.svg",
+    "warehousePath": "icons/termicons/SVG/Media Controls/Line/Microphone.svg",
+    "set": "termicons-line",
+    "style": "line-black",
+    "mask_ready": true,
+    "caption": "Микрофон — запись голоса"
+  },
+  {
+    "key": "stop",
+    "kind": "icon",
+    "file": "icons/stop.svg",
+    "warehousePath": "icons/termicons/SVG/Media Controls/Line/Stop.svg",
+    "set": "termicons-line",
+    "style": "line-black",
+    "mask_ready": true,
+    "caption": "Стоп записи — квадрат со скруглёнными углами"
+  },
+  {
+    "key": "folder",
+    "kind": "icon",
+    "file": "icons/folder.svg",
+    "warehousePath": "icons/termicons/SVG/User Interface/Line/folder.svg",
+    "set": "termicons-line",
+    "style": "line-black",
+    "mask_ready": true,
+    "caption": "Папка"
+  },
+  {
+    "key": "folder-open",
+    "kind": "icon",
+    "file": "icons/folder-open.svg",
+    "warehousePath": "icons/universal/SVG/Line/User Interface/Folder Open.svg",
+    "set": "universal-line",
+    "style": "line-black",
+    "mask_ready": true,
+    "caption": "Открытая папка (в termicons-line нет, взята из universal-line того же стиля)"
+  },
+  {
+    "key": "file",
+    "kind": "icon",
+    "file": "icons/file.svg",
+    "warehousePath": "icons/termicons/SVG/User Interface/Line/file.svg",
+    "set": "termicons-line",
+    "style": "line-black",
+    "mask_ready": true,
+    "caption": "Документ / файл (PREFERENCES.md)"
+  },
+  {
+    "key": "chat",
+    "kind": "icon",
+    "file": "icons/chat.svg",
+    "warehousePath": "icons/termicons/SVG/Communication/Line/Chat.svg",
+    "set": "termicons-line",
+    "style": "line-black",
+    "mask_ready": true,
+    "caption": "Чат — облачко сообщения"
+  },
+  {
+    "key": "search",
+    "kind": "icon",
+    "file": "icons/search.svg",
+    "warehousePath": "icons/termicons/SVG/User Interface/Line/search.svg",
+    "set": "termicons-line",
+    "style": "line-black",
+    "mask_ready": true,
+    "caption": "Поиск — лупа"
+  },
+  {
+    "key": "filter",
+    "kind": "icon",
+    "file": "icons/filter.svg",
+    "warehousePath": "icons/termicons/SVG/Shopping and Ecommerce/Line/Filter.svg",
+    "set": "termicons-line",
+    "style": "line-black",
+    "mask_ready": true,
+    "caption": "Фильтр — воронка"
+  },
+  {
+    "key": "ai",
+    "kind": "icon",
+    "file": "icons/ai.svg",
+    "warehousePath": "icons/universal/SVG/Line/Devices and Electronics/AI.svg",
+    "set": "universal-line",
+    "style": "line-black",
+    "mask_ready": true,
+    "caption": "ИИ — искры (sparkle); в termicons-line нет, взята из universal-line"
+  },
+  {
+    "key": "plug",
+    "kind": "icon",
+    "file": "icons/plug.svg",
+    "warehousePath": "icons/termicons/SVG/Device and Electronics/Line/Electrical Plug.svg",
+    "set": "termicons-line",
+    "style": "line-black",
+    "mask_ready": true,
+    "caption": "Штекер с кабелем — подключение MCP"
+  },
+  {
+    "key": "pencil",
+    "kind": "icon",
+    "file": "icons/pencil.svg",
+    "warehousePath": "icons/termicons/SVG/Design/Line/Pencil.svg",
+    "set": "termicons-line",
+    "style": "line-black",
+    "mask_ready": true,
+    "caption": "Карандаш — редактировать"
+  },
+  {
+    "key": "trash",
+    "kind": "icon",
+    "file": "icons/trash.svg",
+    "warehousePath": "icons/termicons/SVG/User Interface/Line/trash can.svg",
+    "set": "termicons-line",
+    "style": "line-black",
+    "mask_ready": true,
+    "caption": "Корзина — удалить"
+  },
+  {
+    "key": "chevron-right",
+    "kind": "icon",
+    "file": "icons/chevron-right.svg",
+    "warehousePath": "icons/termicons/SVG/User Interface/Line/chevron right sq-fr.svg",
+    "set": "termicons-line",
+    "style": "line-black",
+    "mask_ready": true,
+    "caption": "Шеврон вправо в квадратной рамке (голого шеврона в наборе нет)"
+  },
+  {
+    "key": "chevron-down",
+    "kind": "icon",
+    "file": "icons/chevron-down.svg",
+    "warehousePath": "icons/termicons/SVG/User Interface/Line/chevron down sq-fr.svg",
+    "set": "termicons-line",
+    "style": "line-black",
+    "mask_ready": true,
+    "caption": "Шеврон вниз в квадратной рамке (голого шеврона в наборе нет)"
+  },
+  {
+    "key": "like",
+    "kind": "icon",
+    "file": "icons/like.svg",
+    "warehousePath": "icons/termicons/SVG/User Interface/Line/heart.svg",
+    "set": "termicons-line",
+    "style": "line-black",
+    "mask_ready": true,
+    "caption": "Люблю — сердце"
+  },
+  {
+    "key": "dislike",
+    "kind": "icon",
+    "file": "icons/dislike.svg",
+    "warehousePath": "icons/termicons/SVG/User Interface/Line/heart off.svg",
+    "set": "termicons-line",
+    "style": "line-black",
+    "mask_ready": true,
+    "caption": "Не люблю — перечёркнутое сердце"
+  },
+  {
+    "key": "code",
+    "kind": "icon",
+    "file": "icons/code.svg",
+    "warehousePath": "icons/termicons/SVG/Device and Electronics/Line/Laptop.svg",
+    "set": "termicons-line",
+    "style": "line-black",
+    "mask_ready": true,
+    "caption": "ЗАМЕНА: ноутбук для домена «код»; глифа </> в line-black нет"
+  },
+  {
+    "key": "plane",
+    "kind": "icon",
+    "file": "icons/plane.svg",
+    "warehousePath": "icons/termicons/SVG/Navigation and Travel/Line/Road Sign Airport.svg",
+    "set": "termicons-line",
+    "style": "line-black",
+    "mask_ready": true,
+    "caption": "Самолёт в круге (знак «аэропорт»); отдельного самолёта в line-black нет"
+  },
+  {
+    "key": "food",
+    "kind": "icon",
+    "file": "icons/food.svg",
+    "warehousePath": "icons/termicons/SVG/Food and Drinks/Line/Fork and Knife.svg",
+    "set": "termicons-line",
+    "style": "line-black",
+    "mask_ready": true,
+    "caption": "Еда — вилка и нож"
+  },
+  {
+    "key": "project",
+    "kind": "icon",
+    "file": "icons/project.svg",
+    "warehousePath": "icons/termicons/SVG/User Interface/Line/grid two hr-al.svg",
+    "set": "termicons-line",
+    "style": "line-black",
+    "mask_ready": true,
+    "caption": "Проект — две колонки (канбан); портфеля в line-black нет"
+  },
+  {
+    "key": "sun",
+    "kind": "icon",
+    "file": "icons/sun.svg",
+    "warehousePath": "icons/universal/SVG/Line/Weather/Sunny.svg",
+    "set": "universal-line",
+    "style": "line-black",
+    "mask_ready": true,
+    "caption": "Солнце — светлая тема (в termicons-line нет, взята из universal-line)"
+  },
+  {
+    "key": "close",
+    "kind": "icon",
+    "file": "icons/close.svg",
+    "warehousePath": "icons/termicons/SVG/User Interface/Line/remove sq-fr.svg",
+    "set": "termicons-line",
+    "style": "line-black",
+    "mask_ready": true,
+    "caption": "Закрыть — крестик в квадратной рамке"
+  },
+  {
+    "key": "plus",
+    "kind": "icon",
+    "file": "icons/plus.svg",
+    "warehousePath": "icons/termicons/SVG/User Interface/Line/plus sq-fr.svg",
+    "set": "termicons-line",
+    "style": "line-black",
+    "mask_ready": true,
+    "caption": "Добавить — плюс в квадратной рамке"
+  },
+  {
+    "key": "check",
+    "kind": "icon",
+    "file": "icons/check.svg",
+    "warehousePath": "icons/termicons/SVG/User Interface/Line/check sq-fr.svg",
+    "set": "termicons-line",
+    "style": "line-black",
+    "mask_ready": true,
+    "caption": "Готово — галочка в квадратной рамке"
+  },
+  {
+    "key": "clock",
+    "kind": "icon",
+    "file": "icons/clock.svg",
+    "warehousePath": "icons/termicons/SVG/Date and Time/Line/Clock 01.svg",
+    "set": "termicons-line",
+    "style": "line-black",
+    "mask_ready": true,
+    "caption": "Часы — история"
+  },
+  {
+    "key": "download",
+    "kind": "icon",
+    "file": "icons/download.svg",
+    "warehousePath": "icons/termicons/SVG/User Interface/Line/file download ou-lc.svg",
+    "set": "termicons-line",
+    "style": "line-black",
+    "mask_ready": true,
+    "caption": "Экспорт — файл со стрелкой вниз"
+  },
+  {
+    "key": "lock",
+    "kind": "icon",
+    "file": "icons/lock.svg",
+    "warehousePath": "icons/termicons/SVG/User Interface/Line/lock.svg",
+    "set": "termicons-line",
+    "style": "line-black",
+    "mask_ready": true,
+    "caption": "Замок — вход по паролю"
+  },
+  {
+    "key": "logout",
+    "kind": "icon",
+    "file": "icons/logout.svg",
+    "warehousePath": "icons/termicons/SVG/User Interface/Line/logout.svg",
+    "set": "termicons-line",
+    "style": "line-black",
+    "mask_ready": true,
+    "caption": "Выход"
+  },
+  {
+    "key": "hero",
+    "kind": "illustration",
+    "file": "illustrations/hero.svg",
+    "warehousePath": "illustrations/tech/SVG/Cognition brain learning brain.svg",
+    "set": "tech",
+    "style": "solid-black",
+    "mask_ready": true,
+    "caption": "Мозг/обучение, силуэт 1024×1024; внутри есть белый фон-прямоугольник (rect fill=\"white\") на весь холст"
+  },
+  {
+    "key": "empty",
+    "kind": "illustration",
+    "file": "illustrations/empty.svg",
+    "warehousePath": "illustrations/tech/SVG/Web question web queries agent customer chat.svg",
+    "set": "tech",
+    "style": "solid-black",
+    "mask_ready": true,
+    "caption": "Пустое состояние: человек с вопросами в облачках, 1024×1024; внутри есть белый фон-прямоугольник"
+  },
+  {
+    "key": "texture",
+    "kind": "background",
+    "file": "backgrounds/texture.svg",
+    "warehousePath": "backgrounds/hero-patterns/polka-dots.svg",
+    "set": "backgrounds-hero-patterns",
+    "style": "tile-black",
+    "mask_ready": true,
+    "caption": "Плитка 20×20 «горошек» для фона страницы; Hero Patterns — нужна подпись автора"
+  },
+  {
+    "key": "hero-code",
+    "kind": "background",
+    "file": "backgrounds/hero-code.svg",
+    "warehousePath": "backgrounds/icon-sheets/coding/coding-scatter.svg",
+    "set": "backgrounds-icon-sheets",
+    "style": "scene-black",
+    "mask_ready": true,
+    "caption": "Полотно 1440×900: россыпь контурных иконок разработки (код, git, БД, терминал) для hero под маской"
+  },
+  {
+    "key": "decor-1",
+    "kind": "decor",
+    "file": "decor/decor-1.svg",
+    "warehousePath": "decor/type-ornaments/type-ornaments-30.svg",
+    "set": "decor-type-ornaments",
+    "style": "mono-black",
+    "mask_ready": true,
+    "caption": "Звёздочка (астериск) из линий, 300×300"
+  },
+  {
+    "key": "decor-2",
+    "kind": "decor",
+    "file": "decor/decor-2.svg",
+    "warehousePath": "decor/type-ornaments/type-ornaments-40.svg",
+    "set": "decor-type-ornaments",
+    "style": "mono-black",
+    "mask_ready": true,
+    "caption": "Знак решётки «#», 300×300"
+  },
+  {
+    "key": "3d-capture",
+    "kind": "decor",
+    "file": "icons3d/capture.svg",
+    "warehousePath": "decor/cta-icons/extrude/extrude-chat.svg",
+    "set": "decor-cta-icons",
+    "style": "extrude",
+    "mask_ready": true,
+    "caption": "3D-иконка (выдавленный контур) карточки записи/hero: облако чата с тремя точками — «скажите фразу»; микрофона в наборе нет"
+  },
+  {
+    "key": "3d-stats",
+    "kind": "decor",
+    "file": "icons3d/stats.svg",
+    "warehousePath": "decor/cta-icons/extrude/extrude-trophy.svg",
+    "set": "decor-cta-icons",
+    "style": "extrude",
+    "mask_ready": true,
+    "caption": "Трофей — все шаги «Как пользоваться» пройдены"
+  },
+  {
+    "key": "3d-recent",
+    "kind": "decor",
+    "file": "icons3d/recent.svg",
+    "warehousePath": "decor/cta-icons/extrude/extrude-clock.svg",
+    "set": "decor-cta-icons",
+    "style": "extrude",
+    "mask_ready": true,
+    "caption": "3D-иконка карточки «Последние записи»: часы"
+  },
+  {
+    "key": "3d-folders",
+    "kind": "decor",
+    "file": "icons3d/folders.svg",
+    "warehousePath": "decor/cta-icons/extrude/extrude-bookmark.svg",
+    "set": "decor-cta-icons",
+    "style": "extrude",
+    "mask_ready": true,
+    "caption": "3D-иконка карточки «Папки»: закладка с галочкой; папки в наборе нет"
+  },
+  {
+    "key": "3d-projects",
+    "kind": "decor",
+    "file": "icons3d/projects.svg",
+    "warehousePath": "decor/cta-icons/extrude/extrude-star.svg",
+    "set": "decor-cta-icons",
+    "style": "extrude",
+    "mask_ready": true,
+    "caption": "3D-иконка карточки «Проекты»: звезда; ракеты в наборе нет (есть только в подписи набора)"
+  },
+  {
+    "key": "3d-mcp",
+    "kind": "decor",
+    "file": "icons3d/mcp.svg",
+    "warehousePath": "decor/cta-icons/extrude/extrude-bolt.svg",
+    "set": "decor-cta-icons",
+    "style": "extrude",
+    "mask_ready": true,
+    "caption": "3D-иконка карточки MCP/подключение: молния (энергия/подключение); разъёма в наборе нет"
+  },
+  {
+    "key": "3d-mcp-send",
+    "kind": "decor",
+    "file": "icons3d/mcp-send.svg",
+    "warehousePath": "decor/cta-icons/extrude/extrude-send.svg",
+    "set": "decor-cta-icons",
+    "style": "extrude",
+    "mask_ready": true,
+    "caption": "3D-иконка, запас для MCP: конверт со стрелкой «отправить»"
+  },
+  {
+    "key": "3d-main-file",
+    "kind": "decor",
+    "file": "icons3d/main-file.svg",
+    "warehousePath": "decor/cta-icons/extrude/extrude-document.svg",
+    "set": "decor-cta-icons",
+    "style": "extrude",
+    "mask_ready": true,
+    "caption": "3D-иконка тёмной карточки PREFERENCES.md: документ со строками"
+  },
+  {
+    "key": "3d-tips",
+    "kind": "decor",
+    "file": "icons3d/tips.svg",
+    "warehousePath": "decor/cta-icons/extrude/extrude-idea.svg",
+    "set": "decor-cta-icons",
+    "style": "extrude",
+    "mask_ready": true,
+    "caption": "3D-иконка подсказок «как пользоваться»: лампочка-идея"
+  },
+  {
+    "key": "3d-empty",
+    "kind": "decor",
+    "file": "icons3d/empty.svg",
+    "warehousePath": "decor/cta-icons/extrude/extrude-gift.svg",
+    "set": "decor-cta-icons",
+    "style": "extrude",
+    "mask_ready": true,
+    "caption": "3D-иконка пустого состояния: подарок"
+  },
+  {
+    "key": "3d-search",
+    "kind": "decor",
+    "file": "icons3d/search.svg",
+    "warehousePath": "decor/cta-icons/extrude/extrude-search.svg",
+    "set": "decor-cta-icons",
+    "style": "extrude",
+    "mask_ready": true,
+    "caption": "3D-иконка поиска/фильтров: документ с лупой"
+  },
+  {
+    "key": "3d-love",
+    "kind": "decor",
+    "file": "icons3d/love.svg",
+    "warehousePath": "decor/cta-icons/extrude/extrude-heart.svg",
+    "set": "decor-cta-icons",
+    "style": "extrude",
+    "mask_ready": true,
+    "caption": "Сердце — карточка статистики"
+  },
+  {
+    "key": "3d-new-entry",
+    "kind": "decor",
+    "file": "icons3d/new-entry.svg",
+    "warehousePath": "decor/cta-icons/extrude/extrude-form.svg",
+    "set": "decor-cta-icons",
+    "style": "extrude",
+    "mask_ready": true,
+    "caption": "3D-иконка новой записи/превью: документ с плюсом"
+  },
+  {
+    "key": "grid-floor",
+    "kind": "background",
+    "file": "backgrounds/grid-floor.svg",
+    "warehousePath": "backgrounds/platform/grid-perspective/grid-perspective-08.svg",
+    "set": "backgrounds-platform",
+    "style": "scene-black",
+    "mask_ready": true,
+    "caption": "Перспективная сетка-«пол» 1440×900 на всю ширину: 23 луча к точке схода у центра (x≈812, горизонт y≈516) и 14 поперечных линий, штрих 0.25 — фон страницы, анимируется сдвигом"
+  },
+  {
+    "key": "grid-hero",
+    "kind": "background",
+    "file": "backgrounds/grid-hero.svg",
+    "warehousePath": "backgrounds/platform/grid-perspective/grid-perspective-19.svg",
+    "set": "backgrounds-platform",
+    "style": "scene-black",
+    "mask_ready": true,
+    "caption": "Перспективная сетка-«пол» 1440×900 с высоким горизонтом (y≈408, точка схода x≈652): 17 лучей и 14 поперечных линий — подложка hero/записи"
+  },
+  {
+    "key": "grid-tile",
+    "kind": "background",
+    "file": "backgrounds/grid-tile.svg",
+    "warehousePath": "backgrounds/hero-patterns/graph-paper.svg",
+    "set": "backgrounds-hero-patterns",
+    "style": "tile-black",
+    "mask_ready": true,
+    "caption": "Мелкая плитка-миллиметровка 100×100 (Hero Patterns «graph paper», нужна подпись автора) — подложка карточек, повторяется"
+  },
+  {
+    "key": "aura-blobs",
+    "kind": "background",
+    "file": "backgrounds/aura-blobs.svg",
+    "warehousePath": "backgrounds/platform/blobs/blobs-03.svg",
+    "set": "backgrounds-platform",
+    "style": "scene-black",
+    "mask_ready": true,
+    "caption": "«Аура»: четыре мягких пятна по углам и центру 1440×900, заливка 0.07–0.14 — нижний слой фона под градиентом, drift/breathe"
+  },
+  {
+    "key": "aura-orbits",
+    "kind": "background",
+    "file": "backgrounds/aura-orbits.svg",
+    "warehousePath": "backgrounds/platform/orbits/orbits-05.svg",
+    "set": "backgrounds-platform",
+    "style": "scene-black",
+    "mask_ready": true,
+    "caption": "«Аура»: семь наклонённых концентрических орбит справа (центр 924,361), штрих 0.12–0.30 — спокойный слой фона, медленный drift/rotate"
+  },
+  {
+    "key": "aura-blobs-soft",
+    "kind": "background",
+    "file": "backgrounds/aura-blobs-soft.svg",
+    "warehousePath": "backgrounds/platform/blobs/blobs-05.svg",
+    "set": "backgrounds-platform",
+    "style": "scene-black",
+    "mask_ready": true,
+    "caption": "«Аура», запасной вариант: два крупных мягких пятна справа сверху, заливка 0.07/0.12 — для hero или тёмной карточки"
+  },
+  {
+    "key": "3d-telegram",
+    "kind": "decor",
+    "file": "icons3d/telegram.svg",
+    "warehousePath": "decor/cta-icons/extrude/extrude-telegram.svg",
+    "set": "decor-cta-icons",
+    "style": "extrude",
+    "mask_ready": true,
+    "caption": "Объёмный самолётик Telegram — плашка студии в подвале"
+  }
+]

@@ -1,0 +1,33 @@
+{
+  "name": "preference-memory",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Сервис моих предпочтений: личная память «люблю / не люблю» с Qdrant и MCP",
+  "type": "module",
+  "workspaces": [
+    "packages/core",
+    "apps/api",
+    "apps/mcp",
+    "apps/backup",
+    "apps/web"
+  ],
+  "scripts": {
+    "build": "npm run build -w @preference-memory/core && npm run build -w @preference-memory/api -w @preference-memory/mcp -w @preference-memory/backup -w @preference-memory/web",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm test --workspaces --if-present",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/node": "^24.0.0",
+    "eslint": "^10.11.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.12.0",
+    "prettier": "^3.9.9",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.70.1",
+    "vitest": "^5.0.1"
+  },
+  "license": "PolyForm-Noncommercial-1.0.0"
+}

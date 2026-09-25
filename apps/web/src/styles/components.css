@@ -1,0 +1,133 @@
+/* Примитивы frost-01: иконка-маска, eyebrow, кнопки, поле, чипы, mono, иллюстрация склада. Токены — tokens*.css. */
+@layer components {
+  .icon {
+    display: inline-block;
+    flex: none;
+    width: 1.25em;
+    height: 1.25em;
+    background-color: currentColor;
+    mask: var(--icon) center / contain no-repeat;
+  }
+  .icon-slot {
+    display: inline-block;
+    flex: none;
+    width: 1.25em;
+    height: 1.25em;
+  }
+  .eyebrow {
+    font-size: var(--text-caption);
+    letter-spacing: var(--tracking-eyebrow);
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--color-muted);
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: var(--radius-full);
+    padding: 10px 20px;
+    font-weight: 600;
+    font-size: 15px;
+    border: 1px solid transparent;
+    transition:
+      background-color var(--motion-duration-fast) var(--motion-easing),
+      transform var(--motion-duration-fast) var(--motion-easing);
+  }
+  .btn:disabled {
+    opacity: 0.6;
+  }
+  .btn-sm {
+    padding: 6px 14px;
+    font-size: 14px;
+  }
+  .btn-primary {
+    background: var(--color-accent);
+    color: var(--color-accent-contrast);
+    box-shadow: var(--shadow-accent);
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--color-accent-deep);
+  }
+  .btn-ghost {
+    background: color-mix(in srgb, var(--color-surface) 60%, transparent);
+    color: var(--color-text);
+    border-color: var(--color-border-strong);
+  }
+  .btn-ghost:hover:not(:disabled) {
+    background: var(--color-surface-2);
+  }
+  .btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--radius-full);
+    color: var(--color-muted);
+    background: transparent;
+    border: 0;
+  }
+  .btn-icon:hover {
+    background: var(--color-surface-2);
+    color: var(--color-text);
+  }
+  .input {
+    width: 100%;
+    background: var(--color-surface);
+    color: var(--color-text);
+    border: 1px solid var(--color-border-strong);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font: inherit;
+    font-size: 15px;
+  }
+  .input::placeholder {
+    color: var(--color-muted);
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: var(--radius-full);
+    padding: 4px 12px;
+    font-size: var(--text-caption);
+    font-weight: 500;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text-secondary);
+  }
+  .chip[aria-pressed='true'] {
+    background: var(--color-accent-soft);
+    border-color: var(--color-accent);
+    color: var(--color-text);
+  }
+  .chip--example {
+    cursor: pointer;
+    background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  }
+  .chip--example:hover {
+    border-color: var(--color-accent);
+    color: var(--color-text);
+  }
+  .mono {
+    font-family: var(--font-mono);
+    font-size: 0.86em;
+    /* операторы constraints показываются как есть: <= а не лигатура ≤ */
+    font-variant-ligatures: none;
+  }
+
+  /* иллюстрации склада: чёрные контуры → currentColor, белая подложка → цвет поверхности */
+  .illustration svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .illustration [fill='black'] {
+    fill: currentColor;
+  }
+  .illustration [fill='white'] {
+    fill: var(--illustration-bg, var(--color-surface));
+  }
+}

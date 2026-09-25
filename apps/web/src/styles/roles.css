@@ -1,0 +1,49 @@
+/* Краска роли (data-role="<Tone>"): --r основной, --r-soft мягкий, --r-ink текст AA. Токены --role-* (tokens*.css). */
+@layer components {
+  :root,
+  [data-role='accent'] {
+    --r: var(--color-accent);
+    --r-soft: var(--color-accent-soft);
+    --r-ink: var(--color-accent-deep);
+  }
+  [data-role='like'] {
+    --r: var(--role-like);
+    --r-soft: var(--role-like-soft);
+    --r-ink: var(--role-like-ink);
+  }
+  [data-role='dislike'] {
+    --r: var(--role-dislike);
+    --r-soft: var(--role-dislike-soft);
+    --r-ink: var(--role-dislike-ink);
+  }
+  [data-role='ui'] {
+    --r: var(--role-ui);
+    --r-soft: var(--role-ui-soft);
+    --r-ink: var(--role-ui-ink);
+  }
+  [data-role='ai'] {
+    --r: var(--role-ai);
+    --r-soft: var(--role-ai-soft);
+    --r-ink: var(--role-ai-ink);
+  }
+  [data-role='mcp'] {
+    --r: var(--role-mcp);
+    --r-soft: var(--role-mcp-soft);
+    --r-ink: var(--role-mcp-ink);
+  }
+  [data-role='service'] {
+    --r: var(--role-service);
+    --r-soft: var(--role-service-soft);
+    --r-ink: var(--role-service-ink);
+  }
+  [data-role='enrich'] {
+    --r: var(--role-enrich);
+    --r-soft: var(--role-enrich-soft);
+    --r-ink: var(--role-enrich-ink);
+  }
+  [data-role='net'] {
+    --r: var(--role-net);
+    --r-soft: var(--role-net-soft);
+    --r-ink: var(--role-net-ink);
+  }
+}

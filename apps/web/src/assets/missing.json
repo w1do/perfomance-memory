@@ -1,0 +1,87 @@
+[
+  {
+    "key": "copy",
+    "kind": "icon",
+    "tried": [
+      "search: \"copy duplicate\"",
+      "search: \"Copy\"",
+      "get: termicons UI copy / duplicate / clipboard / files / file copy / file copy ou-lc / copy sq-fr",
+      "get: universal UI Copy"
+    ]
+  },
+  {
+    "key": "fish",
+    "kind": "icon",
+    "tried": [
+      "search: \"fish\"",
+      "search: \"Fish\" (без фильтра стиля — нет ни в одном стиле)",
+      "search: \"рыба рыбалка удочка\"",
+      "get: termicons Food and Drinks/Fish",
+      "get: universal Food and Drinks/Fish"
+    ]
+  },
+  {
+    "key": "moon",
+    "kind": "icon",
+    "tried": [
+      "search: \"moon night\"",
+      "search: \"crescent moon\"",
+      "search: \"луна ночь тёмная тема\"",
+      "get: termicons Weather/Moon, UI moon, UI dark mode",
+      "get: universal Weather Moon / Night / Clear Night / Crescent Moon / Moon Stars / Clear Sky Night / Night Clear",
+      "найдено только universal Weather/Partly Cloudy Night (луна с облаком) — для переключателя темы не подходит, не сохранено"
+    ]
+  },
+  {
+    "key": "server",
+    "kind": "icon",
+    "tried": [
+      "search: \"server database rack\"",
+      "search: \"server hard drive storage electronics\"",
+      "search: \"server\"",
+      "search: \"Database\"",
+      "get: termicons Device and Electronics Server / Database / Hard Drive / Hard Disk / Router",
+      "get: universal Devices and Electronics/Server"
+    ]
+  },
+  {
+    "key": "3d-mic",
+    "kind": "decor",
+    "tried": [
+      "decor/cta-icons/extrude — полный перебор 40 поводов (assets_search kind:decor style:mono-black, запросы «cta icons extrude», «микрофон голос запись ракета папка»)",
+      "нет повода microphone/voice в extrude/tile/orb; для hero взят extrude-chat"
+    ]
+  },
+  {
+    "key": "3d-folder",
+    "kind": "decor",
+    "tried": [
+      "decor/cta-icons/extrude — полный перебор 40 поводов (assets_search kind:decor style:mono-black, запросы «cta icons extrude», «микрофон голос запись ракета папка»)",
+      "нет повода folder; для «Папок» взят extrude-bookmark"
+    ]
+  },
+  {
+    "key": "3d-rocket",
+    "kind": "decor",
+    "tried": [
+      "decor/cta-icons/extrude — полный перебор 40 поводов (assets_search kind:decor style:mono-black, запросы «cta icons extrude», «микрофон голос запись ракета папка»)",
+      "«ракета» есть только в подписи набора, файла extrude-rocket в выдаче нет; для «Проектов» взят extrude-star"
+    ]
+  },
+  {
+    "key": "3d-chart",
+    "kind": "decor",
+    "tried": [
+      "decor/cta-icons/extrude — полный перебор 40 поводов (assets_search kind:decor style:mono-black, запросы «cta icons extrude», «микрофон голос запись ракета папка»)",
+      "нет повода chart/graph; для статистики взят extrude-trophy"
+    ]
+  },
+  {
+    "key": "3d-plug",
+    "kind": "decor",
+    "tried": [
+      "decor/cta-icons/extrude — полный перебор 40 поводов (assets_search kind:decor style:mono-black, запросы «cta icons extrude», «микрофон голос запись ракета папка»)",
+      "нет повода plug/connect/server; для MCP взят extrude-bolt (запас extrude-send)"
+    ]
+  }
+]

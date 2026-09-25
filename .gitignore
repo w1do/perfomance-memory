@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+data/
+*.log
+
+# локальные настройки и ключи — не публикуются
+.mcp.json
+.claude/settings.local.json

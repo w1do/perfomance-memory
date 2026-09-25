@@ -1,0 +1,134 @@
+@layer theme, base, components, utilities;
+/* Экран папок: дерево слева (sticky), справа шапка папки и колонки «Люблю / Не люблю». Без сетки на фоне.
+   Краска колонок и карточек — --r из data-role (roles.css), поверхности и радиусы — токены frost-01. */
+@layer components {
+  .folders-layout {
+    display: grid;
+    gap: var(--space-md);
+    align-items: start;
+  }
+  .card.folders-tree {
+    align-self: start;
+    padding: var(--space-sm);
+  }
+  .folders-tree .collapse > * {
+    margin: -2px; /* запас под кольцо фокуса у крайних строк */
+    padding: 2px;
+  }
+  .folders-tree .collapse[data-open='true'] > * {
+    padding-block-start: var(--space-sm);
+  }
+  @media (min-width: 1024px) {
+    .folders-layout {
+      grid-template-columns: clamp(280px, 20vw, 380px) minmax(0, 1fr);
+    }
+    .card.folders-tree {
+      position: sticky;
+      top: calc(var(--header-h) + 16px);
+      max-block-size: calc(100dvh - var(--header-h) - 32px);
+      overflow: hidden auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-border-strong) transparent;
+    }
+    .folders-tree .collapse {
+      grid-template-rows: 1fr;
+    }
+    .folders-tree .collapse > * {
+      padding-block-start: 2px;
+    }
+    .folders-tree__toggle {
+      display: none;
+    }
+  }
+
+  .pref-columns {
+    display: grid;
+    gap: var(--space-md);
+  }
+  @media (min-width: 768px) {
+    .pref-columns {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .pref-col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+    min-inline-size: 0;
+  }
+  /* на 2560 — по две карточки; min() — без переполнения на 768–1023 */
+  .pref-col__list {
+    display: grid;
+    gap: var(--space-md);
+    align-items: start;
+    grid-template-columns: repeat(auto-fill, minmax(min(360px, 100%), 1fr));
+  }
+  .pref-col__head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px var(--space-md);
+    border-radius: var(--radius-card);
+    border: 1px solid color-mix(in srgb, var(--color-border-strong) 70%, transparent);
+    background:
+      linear-gradient(90deg, var(--r), transparent) top / 100% 2px no-repeat,
+      color-mix(in srgb, var(--color-surface) var(--solid-alpha), transparent);
+    box-shadow: var(--shadow-sm);
+  }
+  @media (max-width: 767px) {
+    .pref-col__list {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .pref-col__head {
+      position: sticky;
+      top: var(--header-h);
+      z-index: 5;
+      background:
+        linear-gradient(90deg, var(--r), transparent) top / 100% 2px no-repeat,
+        var(--color-surface);
+    }
+  }
+
+  .pref-card__actions {
+    opacity: 0;
+    transition: opacity var(--motion-duration-fast) var(--motion-easing);
+  }
+  .pref-card:is(:hover, :focus-within) .pref-card__actions {
+    opacity: 1;
+  }
+  @media (hover: none) {
+    .pref-card__actions {
+      opacity: 1;
+    }
+  }
+  .pref-card[data-dragging] {
+    opacity: 0.6;
+    scale: 0.98;
+  }
+
+  .tree-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-block-size: 36px;
+    border-radius: var(--radius-sm);
+    padding-inline-end: 4px;
+    transition: background-color var(--motion-duration-fast) var(--motion-easing);
+  }
+  .tree-row:hover {
+    background: color-mix(in srgb, var(--color-surface-2) 80%, transparent);
+  }
+  .tree-row[aria-current='true'] {
+    background: var(--color-accent-soft);
+    box-shadow: inset 2px 0 0 var(--color-accent);
+  }
+  .tree-row .tree-chevron {
+    width: 0.95em;
+    height: 0.95em;
+    color: var(--color-muted-dim);
+  }
+  .tree-row[data-drop] {
+    outline: 1px dashed var(--color-accent);
+    background: var(--color-accent-soft);
+  }
+}

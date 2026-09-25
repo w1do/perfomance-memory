@@ -1,0 +1,82 @@
+/* Эффекты карточки (имена frost-01): border-run — кольцо на @property --run-angle, glow на hover,
+   lift −3px; акцент (только hero) — постоянное кольцо и статичный glow. Анимации — motion-run.css. */
+@property --run-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
+@layer components {
+  /* бегущая обводка: кольцо 1.5px поверх рамки */
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    z-index: 2;
+    pointer-events: none;
+    border-radius: inherit;
+    padding: 1px;
+    background: conic-gradient(
+      from var(--run-angle),
+      transparent 0% 70%,
+      color-mix(in srgb, var(--r) 55%, transparent) 86%,
+      transparent 100%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity var(--motion-duration) var(--motion-easing);
+  }
+  .card:is(:hover, :focus-within)::before {
+    opacity: 1;
+  }
+
+  @media (hover: hover) {
+    .card:is(:hover, :focus-within) {
+      box-shadow:
+        var(--shadow-lg), var(--card-inset); /* спокойный подъём: нейтральная тень, без цветного ореола */
+      border-color: color-mix(in srgb, var(--r) 22%, var(--color-border));
+    }
+    .card[data-lift]:hover {
+      transform: translateY(-2px);
+    }
+  }
+
+  /* акцент (только hero): постоянное кольцо + статичный glow */
+  .card--accent {
+    --run-a: var(--color-accent-bright);
+    --run-b: var(--role-mcp);
+    box-shadow:
+      var(--shadow-lg),
+      var(--card-inset),
+      0 0 0 1px color-mix(in srgb, var(--color-accent) 14%, transparent),
+      0 24px 60px -24px color-mix(in srgb, var(--color-accent-bright) 45%, transparent);
+  }
+  .card--accent::before {
+    opacity: 0.9;
+    background: conic-gradient(
+      from var(--run-angle),
+      transparent 0% 55%,
+      var(--run-a) 70%,
+      var(--run-b) 82%,
+      var(--role-ai) 90%,
+      transparent 97%
+    );
+  }
+  .card--accent[data-recording] {
+    --run-a: var(--role-like);
+    --run-b: var(--color-accent-bright);
+  }
+
+  @media (forced-colors: active) {
+    .card::before {
+      display: none;
+    }
+  }
+}

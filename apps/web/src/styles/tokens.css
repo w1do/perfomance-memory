@@ -1,0 +1,112 @@
+/*
+ * Design tokens. Source: CMS palette_show("frost-01") — семейство «Иней», направление landing-d1328fa3
+ * (brand_storm, genre landing). Шрифты: пара frost-inter + JetBrains Mono.
+ * Ролевые цвета — схема автора (PROMPT §7.1); *-ink — затемнённые варианты для текста (WCAG AA ≥ 4.5).
+ */
+:root {
+  color-scheme: light;
+  --backdrop: rgba(15, 26, 46, 0.42);
+  --color-accent: #2563eb;
+  --color-accent-bright: #4f86f7;
+  --color-accent-contrast: #ffffff;
+  --color-accent-contrast-soft: #e6eefe;
+  --color-accent-deep: #1b47b8;
+  --color-accent-soft: #dce8fe;
+  --color-bg: #f4f7fc;
+  --color-bg-deep: #e8eff9;
+  --color-border: #e2eaf6;
+  --color-border-strong: #c7d7ec;
+  --color-danger: #dc2b4b;
+  --color-info: #2563eb;
+  --color-ink: #0b1428;
+  --color-ink-2: #131f3a;
+  --color-ink-3: #1b2c50;
+  --color-ink-border: #25375e;
+  --color-ink-border-strong: #33497a;
+  --color-muted: #66748e;
+  --color-muted-dim: #9ba7bc;
+  --color-on-deep: #eef3fc;
+  --color-on-deep-border: #25375e;
+  --color-on-deep-muted: #8b9bb8;
+  --color-on-deep-secondary: #c2cfe6;
+  --color-success: #17a673;
+  --color-surface: #ffffff;
+  --color-surface-2: #f7fafe;
+  --color-text: #0f1a2e;
+  --color-text-secondary: #33405a;
+  --shadow-accent: 0 14px 32px rgba(37, 99, 235, 0.3);
+  --shadow-lg: 0 36px 80px rgba(15, 26, 46, 0.12);
+  --shadow-md: 0 14px 34px rgba(15, 26, 46, 0.08);
+  --shadow-sm: 0 1px 2px rgba(15, 26, 46, 0.06);
+
+  /* роли: основной / мягкий / текст (AA) */
+  --role-like: #e0457b;
+  --role-like-soft: #ffd6e8;
+  --role-like-ink: #aa345d;
+  --role-dislike: #666666;
+  --role-dislike-soft: #ededed;
+  --role-dislike-ink: #666666;
+  --role-ui: #3a6ff7;
+  --role-ui-soft: #d6e4ff;
+  --role-ui-ink: #305bcb;
+  --role-ai: #8a3ffc;
+  --role-ai-soft: #e9d6ff;
+  --role-ai-ink: #7736d9;
+  --role-mcp: #0fa3d1;
+  --role-mcp-soft: #d6f5ff;
+  --role-mcp-ink: #0b7292;
+  --role-service: #1baa5c;
+  --role-service-soft: #d6ffe4;
+  --role-service-ink: #147e44;
+  --role-enrich: #f07a1a;
+  --role-enrich-soft: #ffe3cc;
+  --role-enrich-ink: #9e5111;
+  --role-net: #e0a800;
+  --role-net-soft: #fff1c2;
+  --role-net-ink: #866500;
+
+  /* текстура фона (PROMPT §7.2: 4–8 %) */
+  --texture-opacity: 0.06;
+
+  /* типографика и шкалы frost-01 */
+  --font-heading: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Cascadia Code', ui-monospace, SFMono-Regular, monospace;
+  --text-display: 64px;
+  --text-h1: 48px;
+  --text-h2: 36px;
+  --text-h3: 23px;
+  --text-lead: 20px;
+  --text-body: 17px;
+  --text-caption: 13px;
+  --leading-tight: 1.06;
+  --leading-normal: 1.65;
+  --weight-heading: 700;
+  --weight-body: 400;
+  --tracking-heading: -0.03em;
+  --tracking-eyebrow: 0.16em;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 26px;
+  --radius-full: 999px;
+  --space-sm: 12px;
+  --space-md: 22px;
+  --space-lg: 36px;
+  --space-xl: 64px;
+  --gutter: 18px;
+  --motion-duration: 460ms;
+  --motion-easing: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-stagger: 80ms;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --gutter: 44px;
+  }
+}
+
+@media (min-width: 1920px) {
+  :root {
+    --gutter: 64px; /* space.xl */
+  }
+}

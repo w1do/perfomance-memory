@@ -1,0 +1,123 @@
+/* MCP-полоса над bento (стекло над подложкой sky-lightest-05 из каталога, орбиты aura-orbits.svg склада
+   в цвете --role-mcp) и чип «MCP · Копировать» в шапке. Токены — tokens*.css, tokens-fx.css. */
+@layer components {
+  .mcp-bar {
+    padding: var(--space-sm) var(--space-md);
+    margin-block-end: var(--space-md);
+    scroll-margin-block-start: calc(var(--header-h) + 12px);
+    background:
+      linear-gradient(
+          90deg,
+          transparent 8%,
+          color-mix(in srgb, var(--r) 45%, transparent) 50%,
+          transparent 92%
+        )
+        top / 100% 1px no-repeat,
+      linear-gradient(color-mix(in srgb, var(--color-surface) var(--glass-alpha), transparent) 0 0),
+      var(--mcp-underlay);
+  }
+  .mcp-row {
+    display: grid;
+    align-items: center;
+    gap: var(--space-sm) var(--space-md);
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      'emblem text'
+      'addr addr'
+      'toggle toggle';
+  }
+  @media (min-width: 1280px) {
+    .mcp-row {
+      grid-template-columns: auto minmax(240px, 1fr) minmax(360px, 1.4fr) auto;
+      grid-template-areas: 'emblem text addr toggle';
+    }
+  }
+  .mcp-row__emblem {
+    grid-area: emblem;
+  }
+  .mcp-row__text {
+    grid-area: text;
+  }
+  .mcp-row__addr {
+    grid-area: addr;
+    display: flex;
+    gap: 8px;
+  }
+  .mcp-row__toggle {
+    grid-area: toggle;
+  }
+  @media (max-width: 479px) {
+    .mcp-row__addr {
+      flex-direction: column;
+    }
+  }
+  .mcp-chevron {
+    transition: rotate var(--motion-duration) var(--motion-easing);
+  }
+  [aria-expanded='true'] > .mcp-chevron {
+    rotate: 180deg;
+  }
+  .mcp-orbits {
+    position: absolute;
+    inset: 0;
+    background: var(--role-mcp);
+    opacity: 0.5;
+    -webkit-mask:
+      url('../assets/backgrounds/aura-orbits.svg') 64% 40% / cover no-repeat,
+      linear-gradient(90deg, transparent 35%, #000 75%);
+    -webkit-mask-composite: source-in;
+    mask:
+      url('../assets/backgrounds/aura-orbits.svg') 64% 40% / cover no-repeat,
+      linear-gradient(90deg, transparent 35%, #000 75%);
+    mask-composite: intersect;
+    transition:
+      rotate var(--motion-duration) var(--motion-easing),
+      scale var(--motion-duration) var(--motion-easing);
+  }
+  .mcp-bar:hover .mcp-orbits {
+    rotate: -3deg;
+    scale: 1.04;
+  }
+  .mcp-panel {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-md);
+    padding-block-start: var(--space-md);
+  }
+  .mcp-panel__cols {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+  @media (min-width: 1024px) {
+    .mcp-panel__cols {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr;
+    }
+  }
+  .mcp-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px 6px 4px 12px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--color-border);
+    background: color-mix(in srgb, var(--color-surface) 85%, transparent);
+    font-size: var(--text-caption);
+  }
+  .mcp-chip .btn-sm {
+    padding: 3px 10px;
+    font-size: var(--text-caption);
+  }
+  .mcp-chip__url {
+    max-inline-size: 24ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  @media (max-width: 1279px) {
+    .mcp-chip__url {
+      display: none;
+    }
+  }
+}

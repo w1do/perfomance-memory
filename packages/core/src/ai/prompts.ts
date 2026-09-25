@@ -1,0 +1,61 @@
+import type { ConflictCandidate, ConflictInput, EnrichInput } from './provider.js';
+
+export const ENRICH_SYSTEM = `Ты раскладываешь личные предпочтения пользователя («люблю / не люблю») в структуру.
+Верни строго JSON по схеме. Правила:
+- Ничего не выдумывай: используй только то, что сказал пользователь. Если чего-то нет — null или [].
+- statement — короткая чистая формулировка правила на языке пользователя, без слов «люблю/не люблю» (полярность хранится отдельно). Пример: «Грубые ответы ChatGPT».
+- details — 1–2 фразы пояснения только из сказанного; если добавить нечего — null (не строка "null").
+- polarity — like или dislike.
+- folder_path — путь папки. Сначала выбери подходящую существующую папку из дерева или из похожих папок. Новую создавай, только если ни одна не подходит. Форма: [Тема, (Подтема…), «Люблю» | «Не люблю»]; последний элемент совпадает с polarity. Имена папок — на языке пользователя, с заглавной буквы, без «/».
+  Тема — предмет правила так, как его назвал пользователь: конкретный ИИ-ассистент — его имя («ChatGPT», «Claude»); код — «Программирование» с подтемой («Код», «PHP», «React»…); хобби и быт — своя тема («Рыбалка», «Путешествия», «Еда»). Проекты: ["Проекты", <имя проекта>, «Люблю» | «Не люблю»].
+  Примеры: «не люблю, когда ChatGPT отвечает грубо» → ["ChatGPT", "Не люблю"]; «не люблю, когда файл с кодом больше 100 строк» → ["Программирование", "Код", "Не люблю"]; «на рыбалке не люблю вставать раньше пяти» → ["Рыбалка", "Не люблю"]; «в проекте Семейный чат люблю минимальный UI» → ["Проекты", "Семейный чат", "Люблю"].
+- domain — одно из известных значений (programming, ai_assistants, fishing, travel, food, communication, project, other) или новое в snake_case латиницей, если ни одно не подходит. Правила про ИИ-ассистентов (ChatGPT, Claude…) — ai_assistants. Правила внутри проекта — project.
+- project — имя проекта, если речь о конкретном проекте, иначе null.
+- applies_to — к кому/чему относится правило, в нижнем регистре латиницей. Только то, что прямо названо во фразе (chatgpt, claude, php, react…), плюс me — если правило про самого пользователя, или any_ai — если это требование к любому ИИ-помощнику, который пишет код или тексты. Не добавляй технологий, которых нет во фразе.
+- tags — от 3 до 7 коротких ключевых слов предмета в нижнем регистре на языке пользователя; без слов «люблю», «не люблю», «предпочтения».
+- conditions — только если пользователь назвал измеримую величину: {metric snake_case латиницей (file_lines, response_words, wake_up_hour…), operator, value, unit — английское слово в нижнем регистре: lines, words, hour…}. Иначе [].
+  Записывай условие буквально, как оно сказано — то, что пользователь любит или не любит, без отрицания: «не люблю файлы с кодом больше 100 строк» → {"metric":"file_lines","operator":">","value":100,"unit":"lines"}; «не люблю вставать раньше пяти» → {"metric":"wake_up_hour","operator":"<","value":5,"unit":"hour"}; «люблю ответы короче 200 слов» → {"metric":"response_words","operator":"<","value":200,"unit":"words"}. Требование система выведет сама из polarity.
+- strength — 1..5: 3 по умолчанию; 4–5 для сильных слов («терпеть не могу», «обожаю», «никогда», «всегда»); 1–2 для мягких («немного», «иногда»).
+- language — код языка фразы (ru, en…).
+- kind — "project_only", если пользователь только просит создать проект и не высказывает предпочтения (тогда statement = имя проекта, folder_path = ["Проекты", <имя>]); иначе "preference". Если просит создать проект и сразу высказывает предпочтение — "preference" с путём внутри проекта.`;
+
+export function enrichUserMessage(input: EnrichInput): string {
+  const tree = input.folderTree.length
+    ? input.folderTree.map((p) => `- ${p}`).join('\n')
+    : '(пусто)';
+  const similar = input.similarFolders.length
+    ? input.similarFolders
+        .map((f) => `- ${f.path.join(' / ')} (сходство ${f.score.toFixed(2)})`)
+        .join('\n')
+    : '(нет)';
+  const projects = input.projects.length ? input.projects.join(', ') : '(нет)';
+  const hint = input.projectHint ? `\nПроект указан явно: ${input.projectHint}` : '';
+  return `Текущее дерево папок:\n${tree}\n\nТоп-3 похожих папки:\n${similar}\n\nИзвестные проекты: ${projects}\nИзвестные домены: ${input.knownDomains.join(', ')}${hint}\n\nФраза пользователя:\n«${input.text}»`;
+}
+
+export const CONFLICT_SYSTEM = `Ты сравниваешь новое предпочтение пользователя с похожими сохранёнными.
+Верни JSON: decision, target_id, reason.
+- "conflict" — новое противоречит сохранённому: тот же предмет или тот же аспект (например, тон ответов одного ассистента, размер файлов), но противоположная оценка или несовместимое значение — даже если слова разные («не люблю грубо» ↔ «люблю дерзко» про ответы ChatGPT — conflict). target_id — id этого сохранённого.
+- "duplicate" — то же самое по смыслу и с той же оценкой. target_id — id дубля.
+- "new" — самостоятельное новое правило. target_id = null.
+reason — одна короткая фраза по-русски.`;
+
+export function conflictUserMessage(input: ConflictInput, candidates: ConflictCandidate[]): string {
+  const list = candidates
+    .map(
+      (c) =>
+        `- id=${c.id} | ${c.polarity === 'like' ? 'люблю' : 'не люблю'}: ${c.statement}` +
+        (c.details ? ` — ${c.details}` : '') +
+        (c.constraints.length ? ` | constraints: ${JSON.stringify(c.constraints)}` : '') +
+        ` | папка: ${c.folder_path.join(' / ')}`,
+    )
+    .join('\n');
+  return `Новое: ${input.polarity === 'like' ? 'люблю' : 'не люблю'}: ${input.statement}${input.details ? ` — ${input.details}` : ''}${input.constraints.length ? ` | constraints: ${JSON.stringify(input.constraints)}` : ''}\nИсходная фраза: «${input.raw_text}»\n\nСохранённые похожие:\n${list}`;
+}
+
+export const TASK_SYSTEM = `По описанию задачи определи, какие области предпочтений пользователя к ней относятся.
+Верни JSON: domains — подходящие из списка доступных (можно несколько, только из списка), project — имя проекта из списка, если задача явно про него, иначе null; applies_to — упомянутые технологии, языки, инструменты или ассистенты в нижнем регистре латиницей (php, react, chatgpt…), иначе [].`;
+
+export function taskUserMessage(task: string, domains: string[], projects: string[]): string {
+  return `Доступные домены: ${domains.join(', ') || '(нет)'}\nПроекты: ${projects.join(', ') || '(нет)'}\n\nЗадача: «${task}»`;
+}

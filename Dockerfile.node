@@ -1,0 +1,27 @@
+# Build and run one Node service of the monorepo (api or mcp).
+ARG NODE_IMAGE=node:20-alpine
+
+FROM ${NODE_IMAGE} AS build
+ARG APP
+WORKDIR /app
+COPY package.json package-lock.json tsconfig.base.json ./
+COPY packages/core/package.json packages/core/
+COPY apps/${APP}/package.json apps/${APP}/
+RUN npm ci --no-audit --no-fund -w packages/core -w apps/${APP} --include-workspace-root
+COPY packages/core packages/core
+COPY apps/${APP} apps/${APP}
+RUN npm run build -w packages/core && npm run build -w apps/${APP}
+
+FROM ${NODE_IMAGE}
+ARG APP
+ENV NODE_ENV=production APP=${APP}
+WORKDIR /app
+COPY package.json package-lock.json ./
+COPY packages/core/package.json packages/core/
+COPY apps/${APP}/package.json apps/${APP}/
+RUN npm ci --no-audit --no-fund --omit=dev -w packages/core -w apps/${APP} && npm cache clean --force
+COPY --from=build /app/packages/core/dist packages/core/dist
+COPY --from=build /app/apps/${APP}/dist apps/${APP}/dist
+RUN mkdir -p /app/data /app/backups && chown node:node /app/data /app/backups
+USER node
+CMD ["sh", "-c", "exec node apps/${APP}/dist/main.js"]

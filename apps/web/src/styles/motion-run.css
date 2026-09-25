@@ -1,0 +1,73 @@
+/* Все animation — только при prefers-reduced-motion: no-preference (появление один раз, fill backwards);
+   idle — только у акцентов (hero, PREFERENCES.md). reduce — всё сразу видно; скрытая вкладка — пауза. */
+@media (prefers-reduced-motion: no-preference) {
+  .enter {
+    animation: fade-up var(--motion-duration) var(--motion-easing) backwards;
+    animation-delay: calc(var(--i, 0) * var(--motion-stagger));
+  }
+  .blur-in {
+    animation: blur-in var(--motion-duration) var(--motion-easing) backwards;
+    animation-delay: calc(var(--i, 0) * var(--motion-stagger) + 80ms);
+  }
+  .enter .icon3d {
+    animation: blur-in 560ms var(--motion-easing) backwards;
+    animation-delay: calc(var(--i, 0) * var(--motion-stagger) + 200ms);
+  }
+  .draw-x {
+    animation: draw-x 600ms var(--motion-easing) backwards;
+    animation-delay: calc(var(--i, 0) * var(--motion-stagger) + 240ms);
+  }
+  .icon3d[data-float] .icon3d__paint {
+    animation: float3d 7s ease-in-out infinite alternate;
+  }
+  .sheen-band {
+    animation: sheen 8s var(--motion-easing) infinite;
+  }
+  .card:not(.card--accent):is(:hover, :focus-within)::before {
+    animation: border-run 3.2s linear infinite;
+  }
+  .card--accent::before {
+    animation: border-run 8s linear infinite;
+  }
+  .card--accent[data-recording]::before {
+    animation-duration: 2.4s;
+  }
+  .card:is(:hover, :focus-within) .icon3d__grid {
+    animation: grid-in-icon 4s linear infinite;
+  }
+  .collapse {
+    transition: grid-template-rows var(--motion-duration) var(--motion-easing);
+  }
+  .tip {
+    animation: tip-in var(--motion-duration-fast) var(--motion-easing) backwards;
+  }
+  .veil-in {
+    animation: veil-in var(--motion-duration-fast) linear backwards;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .sheen-band,
+  .hero-floor__scan {
+    display: none;
+  }
+  .card--accent::before {
+    --run-angle: 220deg; /* неподвижная дуга: форма акцента читается */
+    opacity: 0.6;
+  }
+}
+
+/* скрытая вкладка (useAmbientMotion): :is() не матчит псевдоэлементы, поэтому три селектора */
+:root[data-idle='paused'] *,
+:root[data-idle='paused'] *::before,
+:root[data-idle='paused'] *::after {
+  animation-play-state: paused !important;
+}

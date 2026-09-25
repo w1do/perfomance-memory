@@ -1,0 +1,129 @@
+/* Объёмная иконка склада (decor/cta-icons/extrude): SVG как маска, градиент краски роли (--r из roles.css).
+   Лицо — полный цвет, торец — полупрозрачный тон, тень-эллипс — цветная подложка. */
+@layer components {
+  .icon3d {
+    --hl: color-mix(in srgb, var(--color-surface) 65%, transparent);
+    --r-hi: color-mix(in srgb, var(--r) 45%, var(--color-surface));
+    --r-lo: color-mix(in srgb, var(--r) 70%, var(--color-text));
+    --o3d: 0.92;
+    position: absolute;
+    z-index: 0;
+    pointer-events: none;
+    inline-size: var(--s3d, var(--s3d-md));
+    aspect-ratio: 1;
+    opacity: var(--o3d);
+    rotate: -8deg;
+    translate: calc(var(--px, 0) * 10px + var(--hx, 0px)) calc(var(--py, 0) * 10px + var(--hy, 0px));
+    transition:
+      translate var(--motion-duration) var(--motion-easing),
+      rotate var(--motion-duration) var(--motion-easing),
+      scale var(--motion-duration) var(--motion-easing);
+  }
+  :root[data-theme='dark'] .icon3d {
+    --hl: color-mix(in srgb, var(--color-on-deep) 22%, transparent);
+    --r-hi: color-mix(in srgb, var(--r) 55%, var(--color-on-deep));
+    --r-lo: color-mix(in srgb, var(--r) 65%, var(--color-bg-deep));
+    --o3d: 0.8;
+  }
+  :is(.card--deep, .card-deep) .icon3d {
+    --r: var(--color-accent);
+    --r-hi: color-mix(in srgb, var(--color-accent-bright) 70%, var(--color-on-deep));
+    --r-lo: var(--color-accent-deep);
+    --hl: color-mix(in srgb, var(--color-on-deep) 22%, transparent);
+    --o3d: 0.75;
+  }
+  .icon3d[data-size='emblem'] {
+    --s3d: var(--s3d-emblem);
+  }
+  .icon3d[data-size='sm'] {
+    --s3d: var(--s3d-sm);
+  }
+  .icon3d[data-size='md'] {
+    --s3d: var(--s3d-md);
+  }
+  .icon3d[data-size='lg'] {
+    --s3d: var(--s3d-lg);
+  }
+  .icon3d[data-placement='corner'] {
+    inset-block-start: calc(var(--s3d) * -0.16);
+    inset-inline-end: calc(var(--s3d) * -0.18);
+  }
+  .icon3d:is([data-placement='inline'], [data-placement='center']) {
+    position: relative;
+    display: block;
+    rotate: 0deg;
+    flex: none;
+  }
+  .icon3d[data-placement='center'] {
+    margin-inline: auto;
+  }
+
+  .icon3d__paint {
+    position: absolute;
+    inset: 0;
+    filter: drop-shadow(0 14px 18px color-mix(in srgb, var(--r) 24%, transparent));
+  }
+  .icon3d__paint > i {
+    position: absolute;
+    inset: 0;
+    -webkit-mask: var(--m3d) center / contain no-repeat;
+    mask: var(--m3d) center / contain no-repeat;
+  }
+  .icon3d__body {
+    background: linear-gradient(150deg, var(--r-hi) 0%, var(--r) 52%, var(--r-lo) 100%);
+  }
+  .icon3d__light {
+    background: linear-gradient(
+      150deg,
+      var(--hl) 0%,
+      transparent 34%,
+      transparent 60%,
+      color-mix(in srgb, var(--r-lo) 45%, transparent) 100%
+    );
+  }
+  /* «сетка в силуэте»: миллиметровка grid-tile.svg проступает на hover */
+  .icon3d__paint > .icon3d__grid {
+    background: var(--hl);
+    opacity: 0;
+    transition: opacity var(--motion-duration) var(--motion-easing);
+    -webkit-mask:
+      var(--m3d) center / contain no-repeat,
+      url('../assets/backgrounds/grid-tile.svg') 0 0 / 28px 28px repeat;
+    -webkit-mask-composite: source-in;
+    mask:
+      var(--m3d) center / contain no-repeat,
+      url('../assets/backgrounds/grid-tile.svg') 0 0 / 28px 28px repeat;
+    mask-composite: intersect;
+  }
+  .card:is(:hover, :focus-within) .icon3d {
+    --hx: -4px;
+    --hy: -6px;
+    rotate: -4deg;
+    scale: 1.04;
+  }
+  .card:is(:hover, :focus-within) .icon3d__grid {
+    opacity: 0.75;
+  }
+  @container (max-width: 300px) {
+    .icon3d[data-placement='corner'] {
+      display: none;
+    }
+  }
+  @media (forced-colors: active) {
+    .icon3d,
+    .card__deco {
+      display: none;
+    }
+  }
+}
+
+@keyframes grid-in-icon {
+  to {
+    -webkit-mask-position:
+      center,
+      28px 28px;
+    mask-position:
+      center,
+      28px 28px;
+  }
+}

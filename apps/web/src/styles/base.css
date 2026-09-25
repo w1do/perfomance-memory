@@ -1,0 +1,93 @@
+/* База и оболочка: html/body, заголовки, фокус, .app-main, шапка-стекло и подвал. Токены — tokens*.css. */
+@layer base {
+  html {
+    background: var(--color-bg);
+  }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: transparent;
+    color: var(--color-text);
+    font-family: var(--font-body);
+    font-size: var(--text-body);
+    line-height: var(--leading-normal);
+    font-weight: var(--weight-body);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-heading);
+    font-weight: var(--weight-heading);
+    letter-spacing: var(--tracking-heading);
+    margin: 0;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+  button {
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+  }
+}
+
+@layer components {
+  .app-main {
+    inline-size: 100%;
+    padding-inline: var(--gutter);
+    padding-block: var(--space-sm) var(--space-xl);
+  }
+  @media (max-width: 767px) {
+    .app-main--dock {
+      padding-block-end: calc(112px + env(safe-area-inset-bottom));
+    }
+  }
+
+  .app-header {
+    --color-muted: var(--color-muted-strong);
+    position: sticky;
+    top: 0;
+    z-index: var(--z-header);
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    block-size: var(--header-h);
+    padding-inline: var(--gutter);
+    border-bottom: 1px solid transparent;
+    background: transparent;
+    transition:
+      background-color var(--motion-duration) var(--motion-easing),
+      border-color var(--motion-duration) var(--motion-easing),
+      box-shadow var(--motion-duration) var(--motion-easing);
+  }
+  .app-header[data-scrolled] {
+    background: color-mix(in srgb, var(--color-surface) 80%, transparent);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    backdrop-filter: blur(16px) saturate(140%);
+    border-bottom-color: color-mix(in srgb, var(--color-border-strong) 60%, transparent);
+    box-shadow: var(--shadow-sm);
+  }
+  @media (prefers-reduced-transparency: reduce) {
+    .app-header[data-scrolled] {
+      background: var(--color-surface);
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+
+  .app-footer {
+    --color-muted: var(--color-muted-strong);
+    inline-size: 100%;
+    padding: var(--space-lg) var(--gutter);
+    font-size: var(--text-caption);
+    color: var(--color-text-secondary);
+  }
+  @media (max-width: 767px) {
+    .app-main--dock + .app-footer {
+      padding-block-end: calc(112px + env(safe-area-inset-bottom));
+    }
+  }
+}

@@ -1,0 +1,134 @@
+@layer theme, base, components, utilities;
+/* Hero главной (акцент 1): сетка, полотно hero-code.svg, пол grid-hero.svg со сканом, 3D-облачко.
+   Микрофон и док — components/capture/mic.css, конвейер — capture/steps.css.
+   Только токены frost-01 и tokens-fx.css; animation — только при prefers-reduced-motion: no-preference. */
+@layer components {
+  .hero-grid {
+    display: grid;
+    gap: var(--space-md);
+  }
+  @media (min-width: 768px) {
+    .hero-grid {
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+      align-items: center;
+    }
+  }
+  @media (min-width: 1024px) {
+    .hero {
+      padding: var(--space-lg);
+    }
+  }
+  /* blur-бюджет: на мобиле стекло у дока */
+  @media (max-width: 767px) {
+    .hero.card--glass {
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+  .hero-title {
+    max-inline-size: 14ch;
+  }
+
+  .hero-code {
+    position: absolute;
+    inset: 0;
+    background-color: var(--color-accent);
+    opacity: 0.1;
+    -webkit-mask:
+      url('../assets/backgrounds/hero-code.svg') center / cover no-repeat,
+      radial-gradient(ellipse at 85% 30%, #000 0%, transparent 65%);
+    -webkit-mask-composite: source-in;
+    mask:
+      url('../assets/backgrounds/hero-code.svg') center / cover no-repeat,
+      radial-gradient(ellipse at 85% 30%, #000 0%, transparent 65%);
+    mask-composite: intersect;
+  }
+  .hero-floor {
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    block-size: 64%;
+    overflow: hidden;
+    -webkit-mask:
+      url('../assets/backgrounds/grid-hero.svg') center bottom / cover no-repeat,
+      linear-gradient(180deg, transparent 0%, #000 45%);
+    -webkit-mask-composite: source-in;
+    mask:
+      url('../assets/backgrounds/grid-hero.svg') center bottom / cover no-repeat,
+      linear-gradient(180deg, transparent 0%, #000 45%);
+    mask-composite: intersect;
+  }
+  /* линии SVG .25 → ≈.18 */
+  .hero-floor__lines {
+    position: absolute;
+    inset: 0;
+    background: var(--color-accent);
+    opacity: 0.7;
+  }
+  .hero-floor__scan {
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    block-size: 40%;
+    transform: translateY(-100%);
+    background: linear-gradient(
+      180deg,
+      transparent,
+      color-mix(in srgb, var(--color-accent-bright) 85%, transparent) 50%,
+      transparent
+    );
+  }
+
+  .hero-art {
+    position: relative;
+    isolation: isolate;
+  }
+  /* мягкий край подложки иллюстрации: без жёсткого прямоугольника на стекле */
+  .hero-art .illustration {
+    position: relative;
+    z-index: 1;
+    -webkit-mask-image: radial-gradient(closest-side, #000 74%, transparent 100%);
+    mask-image: radial-gradient(closest-side, #000 74%, transparent 100%);
+  }
+  .icon3d.hero-bubble {
+    --s3d: var(--s3d-md);
+    z-index: 2;
+    left: -8%;
+    top: -4%;
+    rotate: -6deg;
+  }
+  @media (max-width: 767px) {
+    .hero-art {
+      display: none;
+    }
+  }
+  @media (min-width: 768px) {
+    .hero > .card__deco > .icon3d {
+      display: none;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-floor__scan {
+    animation: floor-scan 7s var(--motion-easing) infinite;
+  }
+  .hero-floor {
+    animation: floor-draw 900ms var(--motion-easing) 200ms backwards;
+  }
+}
+@keyframes floor-scan {
+  0% {
+    transform: translateY(-100%);
+  }
+  70%,
+  100% {
+    transform: translateY(260%);
+  }
+}
+/* draw */
+@keyframes floor-draw {
+  from {
+    clip-path: inset(0 0 100% 0);
+  }
+}

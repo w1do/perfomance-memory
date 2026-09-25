@@ -1,0 +1,19 @@
+/* Точка входа стилей. Порядок важен: сначала все @import, потом @config. */
+@import 'tailwindcss';
+@import './tokens.css';
+@import './tokens-dark.css';
+@import './tokens-fx.css';
+@import './base.css';
+@import './components.css';
+@import './controls.css';
+@import './roles.css';
+@import './card.css';
+@import './card-fx.css';
+@import './icon3d.css';
+@import './backdrop.css';
+@import './mcp.css';
+@import './motion.css';
+@import './motion-run.css';
+@config '../../tailwind.config.ts';
+/* .collapse — наш компонент (controls.css), а не утилита Tailwind visibility: collapse */
+@source not inline('collapse');

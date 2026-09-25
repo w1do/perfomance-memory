@@ -1,0 +1,132 @@
+/* Карточка bento: поверхность (solid/glass/deep/opaque), волосяной блик сверху в краске роли, слой декора.
+   Стекло (blur) только у .card--glass. Кольцо border-run, hover и акцент — в card-fx.css. */
+@layer components {
+  .card {
+    --run-a: var(--r);
+    --run-b: var(--color-accent-bright);
+    --card-inset: inset 0 1px 0 color-mix(in srgb, var(--color-surface) 70%, transparent);
+    --color-muted: var(--color-muted-strong); /* AA на полупрозрачной поверхности, §2.6 */
+    position: relative;
+    isolation: isolate;
+    container-type: inline-size; /* @container: прятать 3D на узких карточках */
+    padding: var(--space-md);
+    border: 1px solid color-mix(in srgb, var(--color-border-strong) 70%, transparent);
+    border-radius: var(--radius-card);
+    background:
+      linear-gradient(
+          90deg,
+          transparent 8%,
+          color-mix(in srgb, var(--r) 45%, transparent) 50%,
+          transparent 92%
+        )
+        top / 100% 1px no-repeat,
+      color-mix(in srgb, var(--color-surface) var(--card-alpha, var(--solid-alpha)), transparent);
+    box-shadow: var(--shadow-md), var(--card-inset);
+    transition:
+      transform var(--motion-duration) var(--motion-easing),
+      box-shadow var(--motion-duration) var(--motion-easing);
+  }
+  :root[data-theme='dark'] .card {
+    --card-inset: inset 0 1px 0 color-mix(in srgb, var(--color-on-deep) 6%, transparent);
+  }
+  @media (min-width: 1920px) {
+    .card {
+      padding: var(--space-lg);
+    }
+  }
+
+  /* дети над декором; утилиты Tailwind (absolute/fixed) побеждают — слой utilities выше */
+  .card > :where(:not(.card__deco)) {
+    position: relative;
+    z-index: 1;
+  }
+  .card__deco {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+    border-radius: calc(var(--radius-card) - 1px);
+  }
+
+  .card--glass {
+    --card-alpha: var(--glass-alpha);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    backdrop-filter: blur(18px) saturate(140%);
+  }
+  .card--opaque {
+    --card-alpha: 100%;
+  }
+  /* .card-deep — старое имя (до переделки MainFileCard разделом B) */
+  :is(.card--deep, .card-deep) {
+    --color-muted: var(--color-on-deep-muted);
+    --r: var(--color-accent-bright);
+    --card-inset: inset 0 1px 0 color-mix(in srgb, var(--color-on-deep) 8%, transparent);
+    background: var(--color-ink-2);
+    border-color: var(--color-ink-border);
+    color: var(--color-on-deep);
+  }
+  :root[data-theme='dark'] :is(.card--deep, .card-deep) {
+    background: var(--color-ink); /* темнее фона — «колодец» */
+  }
+  :is(.card--deep, .card-deep) .eyebrow {
+    color: var(--color-on-deep-muted);
+  }
+  :is(.card--deep, .card-deep) .btn-ghost {
+    background: transparent;
+    color: var(--color-on-deep);
+    border-color: var(--color-ink-border-strong);
+  }
+  :is(.card--deep, .card-deep) .btn-ghost:hover:not(:disabled) {
+    background: var(--color-ink-3);
+  }
+
+  /* sheen (только PREFERENCES.md) — полоса внутри .card__deco */
+  .sheen-band {
+    position: absolute;
+    inset-block: 0;
+    left: 0;
+    inline-size: 30%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--color-on-deep) 8%, transparent),
+      transparent
+    );
+    transform: translateX(-120%) skewX(-18deg);
+  }
+
+  .card-head {
+    padding-inline-end: calc(var(--s3d, 0px) * 0.5); /* безопасная зона под 3D */
+  }
+  .card-foot {
+    margin-block-start: auto;
+    padding-block-start: var(--space-sm);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .card[data-3d='sm'] {
+    --s3d: var(--s3d-sm);
+  }
+  .card[data-3d='md'] {
+    --s3d: var(--s3d-md);
+  }
+  .card[data-3d='lg'] {
+    --s3d: var(--s3d-lg);
+  }
+  @media (max-width: 767px) {
+    .card[data-3d] {
+      --s3d: var(--s3d-sm);
+    }
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    .card,
+    .card--glass {
+      --card-alpha: 100%;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+  }
+}

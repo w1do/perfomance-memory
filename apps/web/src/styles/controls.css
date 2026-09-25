@@ -1,0 +1,114 @@
+/* Составные контролы фундамента (контракт §4.12): .seg, .code-block, .token-ph, .status-dot,
+   .row-item, .tile, .collapse, .tip. Только токены frost-01 и производные из tokens-fx.css. */
+@layer components {
+  .seg {
+    display: inline-flex;
+    gap: 2px;
+    padding: 3px;
+    border-radius: var(--radius-full);
+    background: color-mix(in srgb, var(--color-bg-deep) 70%, transparent);
+  }
+  .seg__item {
+    border-radius: var(--radius-full);
+    padding: 6px 14px;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    transition: background-color var(--motion-duration-fast) var(--motion-easing);
+  }
+  .seg__item:hover {
+    color: var(--color-text);
+  }
+  .seg__item:is([aria-selected='true'], [aria-current='page']) {
+    background: var(--color-surface);
+    color: var(--color-text);
+    box-shadow: var(--shadow-sm);
+  }
+  .code-block {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    line-height: 1.6;
+    font-variant-ligatures: none;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere; /* длинные команды переносятся, без горизонтального скролла */
+    padding: 12px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+    background: color-mix(in srgb, var(--color-bg-deep) 80%, transparent);
+    color: var(--color-text);
+  }
+  .token-ph {
+    font: inherit;
+    padding: 0 4px;
+    border-radius: calc(var(--radius-sm) / 2);
+    background: var(--role-mcp-soft);
+    color: var(--role-mcp-ink);
+  }
+  .status-dot {
+    display: inline-block;
+    inline-size: 8px;
+    block-size: 8px;
+    border-radius: 50%;
+    flex: none;
+    background: var(--color-muted);
+  }
+  .status-dot[data-state='ok'] {
+    background: var(--role-service);
+  }
+  .status-dot[data-state='down'] {
+    background: var(--color-danger);
+  }
+  .row-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    min-block-size: 44px;
+    padding: 8px 12px;
+    border-radius: var(--radius-sm);
+    transition: background-color var(--motion-duration-fast) var(--motion-easing);
+  }
+  .row-item:hover {
+    background: color-mix(in srgb, var(--color-surface-2) 80%, transparent);
+  }
+  .tile {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: var(--space-sm);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border);
+    background: color-mix(in srgb, var(--color-surface-2) 80%, transparent);
+    transition:
+      border-color var(--motion-duration-fast) var(--motion-easing),
+      translate var(--motion-duration-fast) var(--motion-easing);
+  }
+  .tile:hover {
+    border-color: var(--color-accent);
+    translate: 0 -1px;
+  }
+  .collapse {
+    display: grid;
+    grid-template-rows: 0fr;
+  }
+  .collapse[data-open='true'] {
+    grid-template-rows: 1fr;
+  }
+  .collapse > * {
+    min-block-size: 0;
+    overflow: hidden;
+  }
+  .tip {
+    position: fixed;
+    z-index: var(--z-tip);
+    max-inline-size: 260px;
+    padding: 8px 10px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-ink-border-strong);
+    background: var(--color-ink-2); /* on-deep на ink-2: 14.68:1 */
+    color: var(--color-on-deep);
+    font-size: var(--text-caption);
+    line-height: 1.45;
+    box-shadow: var(--shadow-md);
+    pointer-events: none;
+  }
+}

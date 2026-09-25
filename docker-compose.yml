@@ -1,0 +1,117 @@
+# Разработка и локальный запуск: образы собираются из исходников.
+# Вся конфигурация — в .env (скопируйте .env.example). Запуск: docker compose up -d --build
+# Продакшен (образы из registry, Dokploy) — docker-compose.prod.yml.
+name: preference-memory
+
+x-logging: &logging # ротация логов у каждого контейнера
+  driver: json-file
+  options: { max-size: '10m', max-file: '3' }
+
+x-node-health: &node-health
+  interval: 5s
+  timeout: 3s
+  retries: 60
+  start_period: 10s
+
+services:
+  qdrant:
+    image: qdrant/qdrant:v1.19.1
+    restart: unless-stopped
+    logging: *logging
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      # в образе нет curl/wget — проверяем /readyz через bash /dev/tcp
+      test:
+        [
+          'CMD',
+          'bash',
+          '-c',
+          "exec 3<>/dev/tcp/127.0.0.1/6333 && printf 'GET /readyz HTTP/1.0\\r\\n\\r\\n' >&3 && grep -q ' 200 ' <&3",
+        ]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  api:
+    image: ${REGISTRY_IMAGE:-preference-memory}/api:${IMAGE_TAG:-local}
+    build: { context: ., dockerfile: Dockerfile.node, args: { APP: api } }
+    restart: unless-stopped
+    logging: *logging
+    env_file: .env
+    volumes:
+      - data:/app/data
+    depends_on:
+      qdrant: { condition: service_healthy }
+    healthcheck:
+      <<: *node-health
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:8080/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+
+  mcp:
+    image: ${REGISTRY_IMAGE:-preference-memory}/mcp:${IMAGE_TAG:-local}
+    build: { context: ., dockerfile: Dockerfile.node, args: { APP: mcp } }
+    restart: unless-stopped
+    logging: *logging
+    env_file: .env
+    volumes:
+      - data:/app/data
+    depends_on:
+      qdrant: { condition: service_healthy }
+      api: { condition: service_healthy }
+    healthcheck:
+      <<: *node-health
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:8081/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+
+  backup:
+    image: ${REGISTRY_IMAGE:-preference-memory}/backup:${IMAGE_TAG:-local}
+    build: { context: ., dockerfile: Dockerfile.node, args: { APP: backup } }
+    restart: unless-stopped
+    logging: *logging
+    env_file: .env
+    volumes:
+      - backups:/app/backups
+      - data:/app/data:ro
+    depends_on:
+      qdrant: { condition: service_healthy }
+      api: { condition: service_healthy }
+    healthcheck:
+      # метка свежей копии: unhealthy, если последней копии нет или она старше 2 × BACKUP_INTERVAL_HOURS
+      test: ['CMD', 'node', 'apps/backup/dist/health.js']
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+
+  web:
+    image: ${REGISTRY_IMAGE:-preference-memory}/web:${IMAGE_TAG:-local}
+    build: { context: ., dockerfile: apps/web/Dockerfile }
+    restart: unless-stopped
+    logging: *logging
+    # nginx не читает .env: секретам в этом контейнере делать нечего; WEB_PORT подставляет compose
+    ports:
+      - '${WEB_PORT:-3000}:80'
+    depends_on:
+      api: { condition: service_healthy }
+      mcp: { condition: service_healthy }
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://127.0.0.1/healthz']
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  qdrant_data:
+  data:
+  backups:

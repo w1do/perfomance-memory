@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "cms": {
+      "type": "http",
+      "url": "${CMS_MCP_URL}"
+    }
+  }
+}

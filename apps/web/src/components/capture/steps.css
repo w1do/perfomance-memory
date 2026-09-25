@@ -1,0 +1,59 @@
+@layer theme, base, components, utilities;
+/* Конвейер hero (PipelineSteps): пилюли шагов и соединители-draw (scaleX 460ms). Токены frost-01. */
+@layer components {
+  .steps {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .steps__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .step {
+    block-size: 30px;
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--color-border);
+    font-size: var(--text-caption);
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    background: color-mix(in srgb, var(--color-surface) 92%, transparent);
+  }
+  .step[aria-current='step'] {
+    background: var(--color-accent);
+    color: var(--color-accent-contrast);
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow-accent);
+  }
+  .step[data-done] {
+    background: var(--color-accent-soft);
+    color: var(--color-text);
+    border-color: var(--color-accent);
+  }
+  .step-link {
+    position: relative;
+    inline-size: 18px;
+    block-size: 2px;
+    background: var(--color-border-strong);
+  }
+  .step-link::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--color-accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 460ms var(--motion-easing);
+  }
+  .step-link[data-done]::after {
+    transform: scaleX(1);
+  }
+}

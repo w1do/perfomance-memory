@@ -1,0 +1,72 @@
+/* Ключевые кадры — только имена эффектов palette_show("frost-01"): fade-up, blur-in, draw, float, sheen,
+   border-run, pulse; плюс слои параллакса [data-depth]. Объявления animation — в motion-run.css. */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    translate: 0 14px;
+  }
+}
+@keyframes blur-in {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+  }
+}
+@keyframes draw-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes float3d {
+  to {
+    transform: translateY(-8px) rotate(3deg);
+  }
+}
+@keyframes sheen {
+  from {
+    transform: translateX(-120%) skewX(-18deg);
+  }
+  to {
+    transform: translateX(320%) skewX(-18deg);
+  }
+}
+@keyframes border-run {
+  to {
+    --run-angle: 360deg;
+  }
+}
+@keyframes ring-pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes tip-in {
+  from {
+    opacity: 0;
+    translate: 0 6px;
+  }
+}
+@keyframes veil-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@layer components {
+  /* parallax sm/md: слой внутри [data-parallax] сдвигается против курсора (--px/--py из useAmbientMotion) */
+  [data-depth='sm'] {
+    translate: calc(var(--px, 0) * -6px) calc(var(--py, 0) * -4px);
+    transition: translate var(--motion-duration) var(--motion-easing);
+  }
+  [data-depth='md'] {
+    translate: calc(var(--px, 0) * -12px) calc(var(--py, 0) * -8px);
+    transition: translate var(--motion-duration) var(--motion-easing);
+  }
+  .draw-x {
+    transform-origin: left center;
+  }
+}

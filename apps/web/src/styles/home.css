@@ -1,0 +1,114 @@
+@layer theme, base, components, utilities;
+/* Bento главной на всю ширину: области вместо col-span; два акцента (hero, main) нигде не соседствуют.
+   Без подсказок статистика занимает и область hints (линии stats-start … hints-end). Токены frost-01. */
+@layer components {
+  .bento {
+    display: grid;
+    gap: var(--space-sm);
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'hero' 'stats' 'hints' 'recent' 'folders' 'projects' 'main';
+  }
+  .area-hero {
+    grid-area: hero;
+  }
+  .area-stats {
+    grid-area: stats;
+  }
+  .area-hints {
+    grid-area: hints;
+  }
+  .area-recent {
+    grid-area: recent;
+  }
+  .area-folders {
+    grid-area: folders;
+  }
+  .area-projects {
+    grid-area: projects;
+  }
+  .area-main {
+    grid-area: main;
+  }
+  .bento--no-hints .area-stats {
+    grid-area: stats-start / stats-start / hints-end / hints-end;
+  }
+
+  @media (min-width: 768px) {
+    .bento {
+      gap: var(--space-md);
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      grid-template-areas:
+        'hero hero hero hero hero hero'
+        'stats stats stats hints hints hints'
+        'recent recent recent recent recent recent'
+        'folders folders folders folders folders folders'
+        'projects projects projects main main main';
+    }
+  }
+  @media (min-width: 1280px) {
+    .bento {
+      grid-template-columns: repeat(12, minmax(0, 1fr));
+      grid-template-areas:
+        'hero hero hero hero hero hero hero hero stats stats stats stats'
+        'hero hero hero hero hero hero hero hero hints hints hints hints'
+        'recent recent recent recent recent recent folders folders folders folders folders folders'
+        'projects projects projects projects projects projects projects main main main main main';
+    }
+    .area-hero {
+      min-block-size: 520px;
+    }
+  }
+  @media (min-width: 1920px) {
+    .bento {
+      grid-template-areas:
+        'hero hero hero hero hero hero stats stats stats hints hints hints'
+        'hero hero hero hero hero hero projects projects projects main main main'
+        'recent recent recent recent recent recent folders folders folders folders folders folders';
+    }
+    .area-hero {
+      min-block-size: 600px;
+    }
+  }
+
+  /* безопасная зона под большой 3D: первая строка списка начинается ниже иконки */
+  .card:is([data-3d='lg'], [data-3d='md']) > .card-head {
+    min-block-size: calc(var(--s3d) * 0.62 - var(--space-md));
+  }
+
+  /* плитки папок */
+  .tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .tile__name {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--color-text);
+    overflow-wrap: anywhere;
+    hyphens: auto;
+  }
+
+  /* PREFERENCES.md: мягкое свечение blobs-05 (прозрачность в SVG .07–.12) и превью с затуханием */
+  .main-glow {
+    position: absolute;
+    inset: 0;
+    background: var(--color-accent-bright);
+    -webkit-mask: url('../assets/backgrounds/aura-blobs-soft.svg') right top / cover no-repeat;
+    mask: url('../assets/backgrounds/aura-blobs-soft.svg') right top / cover no-repeat;
+  }
+  .main-preview {
+    margin: 0;
+    overflow: hidden;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--color-on-deep-secondary);
+    -webkit-mask-image: linear-gradient(#000 60%, transparent);
+    mask-image: linear-gradient(#000 60%, transparent);
+  }
+}

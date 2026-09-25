@@ -1,0 +1,56 @@
+/* Производные токены frost-01 и дословные записи каталога градиентов brand_storm (выдача ассет-агента).
+   Здесь же прозрачности сияния, сетки и стекла, размеры 3D и z-слои — крутить эффекты только тут. */
+:root {
+  --color-muted-strong: color-mix(in srgb, var(--color-muted) 72%, var(--color-text)); /* AA 6.36 */
+  --radius-card: var(--radius-md); /* 16px вместо 26px */
+  --motion-duration-fast: calc(var(--motion-duration) * 0.45); /* ≈200ms для кнопок */
+  --header-h: 64px;
+
+  --grad-sky-lightest-07: linear-gradient(180deg, #e5f2fb 0%, #d3e9f8 55%, #c4dff2 100%);
+  --grad-sky-lightest-05: linear-gradient(135deg, #e5f2fb 0%, #c4edf2 100%);
+  --grad-cyan-light-08: linear-gradient(120deg, #b9eaf4 0%, #9ad0ef 55%, #81ace4 100%);
+  --grad-blue-light-05: linear-gradient(135deg, #b9caf4 0%, #81bce4 100%);
+  --grad-violet-light-03: linear-gradient(90deg, #ceb9f4 0%, #a581e4 100%);
+  --grad-blue-dark-03: linear-gradient(90deg, #1a419e 0%, #122654 100%);
+  --grad-sky-medium-07: linear-gradient(180deg, #58aae4 0%, #3196dd 55%, #277cb9 100%);
+  --grad-indigo-medium-08: linear-gradient(120deg, #5858e4 0%, #5331dd 55%, #6227b9 100%);
+  --grad-violet-medium-08: linear-gradient(120deg, #8b58e4 0%, #9331dd 55%, #9727b9 100%);
+
+  --aurora-wash: var(--grad-sky-lightest-07);
+  --aurora-wash-o: 1;
+  --aurora-a: var(--grad-cyan-light-08);
+  --aurora-a-o: 0.4;
+  --aurora-b: var(--grad-blue-light-05);
+  --aurora-b-o: 0.34;
+  --aurora-c: var(--grad-violet-light-03);
+  --aurora-c-o: 0.22;
+  --grid-o: 0.4; /* backgrounds.tint-and-opacity: 0.1–0.4 */
+  --mcp-underlay: var(--grad-sky-lightest-05);
+
+  --glass-alpha: 80%;
+  --solid-alpha: 92%;
+  --s3d-emblem: 56px;
+  --s3d-sm: 96px;
+  --s3d-md: 136px;
+  --s3d-lg: 168px;
+  --z-dock: 30;
+  --z-header: 40;
+  --z-modal: 50;
+  --z-toast: 60;
+  --z-tip: 70;
+}
+
+:root[data-theme='dark'] {
+  --aurora-wash: var(--grad-blue-dark-03);
+  --aurora-wash-o: 0.35;
+  --aurora-a: var(--grad-sky-medium-07);
+  --aurora-a-o: 0.14;
+  --aurora-b: var(--grad-indigo-medium-08);
+  --aurora-b-o: 0.16;
+  --aurora-c: var(--grad-violet-medium-08);
+  --aurora-c-o: 0.12;
+  --grid-o: 0.3;
+  --mcp-underlay: none;
+  --glass-alpha: 76%;
+  --solid-alpha: 90%;
+}
