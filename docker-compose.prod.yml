@@ -1,5 +1,5 @@
-# Продакшен (Dokploy): готовые образы из GitLab Container Registry, на сервере ничего не собирается.
-# В .env (переменные окружения приложения в Dokploy) обязательно: REGISTRY_IMAGE=registry.gitlab.com/<группа>/<проект>;
+# Продакшен (Dokploy): готовые образы из GitHub Container Registry (ghcr.io), на сервере ничего не собирается.
+# В .env (переменные окружения приложения в Dokploy) обязательно: REGISTRY_IMAGE=ghcr.io/<владелец>/<репозиторий>;
 # IMAGE_TAG=latest (или short SHA сборки — для отката). Registry добавьте в Dokploy (Settings → Registry).
 # Сгенерирован из docker-compose.yml: те же сервисы, healthcheck, логи и volumes, только без build.
 name: preference-memory

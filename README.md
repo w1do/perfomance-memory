@@ -5,14 +5,26 @@
 домен, проект, теги, ограничения, сила), кладёт в дерево папок, индексирует в Qdrant и собирает главный файл
 `PREFERENCES.md`. Агенты (Claude Code, Claude Desktop, ChatGPT) читают всё это через MCP-сервер.
 
+## Demo
+
+| Вход (email + пароль из `.env`) | Главная, светлая тема |
+|---|---|
+| ![Вход](docs/screenshots/01-login.png) | ![Главная](docs/screenshots/02-home-light.png) |
+| **Главная, тёмная тема** | **Подключение агентов к MCP** |
+| ![Главная, тёмная](docs/screenshots/03-home-dark.png) | ![MCP](docs/screenshots/04-mcp-connect.png) |
+| **Папки: проект SaaS** | **Папки, тёмная тема** |
+| ![Папки](docs/screenshots/05-folders-saas.png) | ![Папки, тёмная](docs/screenshots/06-folders-dark.png) |
+| **Превью перед сохранением** | **Телефон** |
+| ![Превью](docs/screenshots/07-preview-modal.png) | ![Телефон](docs/screenshots/08-mobile-dark.png) |
+
 ## Запуск
 
 1. Скопируйте шаблон и заполните его:
    ```bash
    cp .env.example .env
    ```
-   Обязательны две переменные: `OPENAI_API_KEY` и `MCP_TOKEN` (любая случайная строка от 16 символов, например
-   вывод `openssl rand -base64 32`).
+   Обязательны четыре переменные: `OPENAI_API_KEY`, `MCP_TOKEN` (любая случайная строка от 16 символов, например
+   вывод `openssl rand -base64 32`), `ADMIN_EMAIL` и `ADMIN_PASSWORD` (вход в веб-интерфейс, пароль от 8 символов).
 2. Запустите:
    ```bash
    docker compose up -d --build
@@ -40,7 +52,8 @@
 | `STT_LANGUAGE` | `ru` | Язык распознавания |
 | `MCP_TOKEN` | — (обязательно, ≥ 16 символов) | Bearer-токен, с которым агенты ходят в `/mcp` |
 | `MCP_ALLOW_WRITE` | `true` | `false` — инструмент `add_preference` не регистрируется |
-| `WEB_PASSWORD` | пусто | Пусто — без пароля (локально); заполнено — вход по паролю, httpOnly-cookie |
+| `ADMIN_EMAIL` | — (обязательно) | Email для входа в веб-интерфейс |
+| `ADMIN_PASSWORD` | — (обязательно, ≥ 8 символов) | Пароль для входа; сессия — httpOnly-cookie на 30 дней, после 5 неудачных попыток за 15 минут вход временно блокируется (429). Смена значения разлогинивает всех |
 | `PUBLIC_URL` | `http://localhost:3000` | Внешний адрес (показывается в карточке MCP; `https://` включает Secure-cookie) |
 | `WEB_PORT` | `3000` | Единственный порт, опубликованный наружу |
 | `QDRANT_URL` | `http://qdrant:6333` | Адрес Qdrant (контейнер из compose) |
@@ -59,7 +72,7 @@
 | `STUDIO_NAME` | пусто | Название студии в подвале (пусто — берётся домен из `STUDIO_URL`) |
 | `BACKUP_INTERVAL_HOURS` | `24` | Как часто сервис `backup` снимает копию Qdrant (1–168 ч) |
 | `BACKUP_KEEP` | `14` | Сколько последних копий хранить |
-| `REGISTRY_IMAGE` | `preference-memory` | Адрес образов в registry (`registry.gitlab.com/<группа>/<проект>`); в `docker-compose.prod.yml` обязателен |
+| `REGISTRY_IMAGE` | `preference-memory` | Адрес образов в registry (`ghcr.io/<владелец>/<репозиторий>`); в `docker-compose.prod.yml` обязателен |
 | `IMAGE_TAG` | `local` | Тег образов; в продакшене `latest` или short SHA сборки (откат) |
 
 Секреты (ключи, токены, пароль) не попадают в логи, ответы API и фронтенд. Контейнер `web` (nginx) `.env` не
@@ -325,25 +338,26 @@ docker compose cp backup:/app/backups ./backups                      # забр�
 Восстановление пересоздаёт коллекции ровно в состоянии копии — с векторами и payload-индексами. Если копия снята
 с другой моделью эмбеддингов, api при следующем старте сам переиндексирует данные.
 
-## CI/CD и деплой (GitLab → Dokploy)
+## CI/CD и деплой (GitHub Actions → Dokploy)
 
-`.gitlab-ci.yml`:
+`.github/workflows/ci.yml`:
 
-| Стадия | Что делает | Когда |
+| Задача | Что делает | Когда |
 |---|---|---|
-| `lint` | ESLint + Prettier, typecheck всех workspaces | каждый push и MR |
-| `test` | все тесты; Qdrant поднимается как service `qdrant/qdrant:v1.19.1` | каждый push и MR |
-| `build` | образы `api`, `mcp`, `backup`, `web` → `$CI_REGISTRY_IMAGE/<сервис>:<short-sha>` и `:latest` (тег git — `:<тег>`) | ветка по умолчанию, теги |
-| `deploy` | `POST $DOKPLOY_WEBHOOK_URL` — Dokploy тянет новые образы и перезапускает стек | ветка по умолчанию |
+| `lint` | ESLint + Prettier, typecheck всех workspaces | каждый push и pull request |
+| `test` | все тесты; Qdrant поднимается как service `qdrant/qdrant:v1.19.1` | каждый push и pull request |
+| `build` | образы `api`, `mcp`, `backup`, `web` → `ghcr.io/<владелец>/<репозиторий>/<сервис>:<short-sha>`, `:latest` (main), `:<тег>` (теги `v*`); кэш слоёв GitHub Actions | push в main и теги |
+| `deploy` | `POST $DOKPLOY_WEBHOOK_URL` — Dokploy тянет новые образы и перезапускает стек | push в main |
 
 Настройка один раз:
 
-1. GitLab → Settings → CI/CD → Variables: `DOKPLOY_WEBHOOK_URL` (masked) — «Deploy webhook» compose-приложения
-   Dokploy. Без неё стадия `deploy` просто не запускается.
-2. Dokploy: Settings → Registry — добавить `registry.gitlab.com` с deploy-токеном GitLab (`read_registry`).
-3. Dokploy: compose-приложение из этого репозитория, путь к файлу `docker-compose.prod.yml`; в Environment — ваш
-   `.env` плюс `REGISTRY_IMAGE=registry.gitlab.com/<группа>/<проект>` и `IMAGE_TAG=latest`; домен с HTTPS на сервис
-   `web` (порт 80) и `PUBLIC_URL=https://ваш-домен`.
+1. GitHub → Settings → Secrets and variables → Actions: секрет `DOKPLOY_WEBHOOK_URL` — «Deploy webhook»
+   compose-приложения Dokploy. Без него `deploy` пропускается.
+2. Dokploy: Settings → Registry — `ghcr.io`, пользователь GitHub и Personal Access Token с правом `read:packages`
+   (или сделайте пакеты публичными в GitHub → Packages).
+3. Dokploy: compose-приложение из этого репозитория, файл `docker-compose.prod.yml`; в Environment — ваш `.env` плюс
+   `REGISTRY_IMAGE=ghcr.io/<владелец>/<репозиторий>` и `IMAGE_TAG=latest`; домен с HTTPS на сервис `web` (порт 80) и
+   `PUBLIC_URL=https://ваш-домен`.
 
 `docker-compose.prod.yml` — те же сервисы, что и `docker-compose.yml`, но без `build`: образы только из registry
 (`pull_policy: always`). Откат: `IMAGE_TAG=<short-sha прошлой сборки>` в Dokploy → Redeploy.

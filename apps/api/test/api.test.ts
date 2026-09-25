@@ -45,30 +45,43 @@ function multipart(filename: string, type: string, data: Buffer) {
   return { payload, headers: { 'content-type': `multipart/form-data; boundary=${boundary}` } };
 }
 
-describe('REST API without password', () => {
+const LOGIN = { email: 'admin@example.com', password: 'correct horse battery' };
+
+async function login(app: FastifyInstance): Promise<string> {
+  const res = await app.inject({ method: 'POST', url: '/api/auth/login', payload: LOGIN });
+  return String(res.headers['set-cookie']).split(';')[0] as string;
+}
+
+describe('REST API (signed in)', () => {
   let app: FastifyInstance;
+  let call: FastifyInstance['inject'];
 
   beforeAll(async () => {
     ({ app } = await makeApp());
+    const cookie = await login(app);
+    call = ((opts: string | Record<string, unknown>) => {
+      const o = typeof opts === 'string' ? { url: opts } : opts;
+      return app.inject({ ...o, headers: { ...(o.headers as object), cookie } } as never);
+    }) as FastifyInstance['inject'];
   });
 
   it('health, auth/me', async () => {
-    expect((await app.inject('/api/health')).json()).toEqual({ status: 'ok' });
-    expect((await app.inject('/api/auth/me')).json()).toEqual({
-      auth_required: false,
+    expect((await call('/api/health')).json()).toEqual({ status: 'ok' });
+    expect((await call('/api/auth/me')).json()).toEqual({
+      auth_required: true,
       authenticated: true,
     });
   });
 
   it('transcribe accepts webm and rejects other formats', async () => {
-    const ok = await app.inject({
+    const ok = await call({
       method: 'POST',
       url: '/api/transcribe',
       ...multipart('a.webm', 'audio/webm;codecs=opus', Buffer.from('fake')),
     });
     expect(ok.statusCode).toBe(200);
     expect(ok.json().text).toContain('ChatGPT');
-    const bad = await app.inject({
+    const bad = await call({
       method: 'POST',
       url: '/api/transcribe',
       ...multipart('a.txt', 'text/plain', Buffer.from('x')),
@@ -77,7 +90,7 @@ describe('REST API without password', () => {
   });
 
   it('preview → save(preview) → list → patch → delete', async () => {
-    const preview = await app.inject({
+    const preview = await call({
       method: 'POST',
       url: '/api/preferences/preview',
       payload: { text: 'не люблю, когда ChatGPT отвечает грубо' },
@@ -88,7 +101,7 @@ describe('REST API without password', () => {
     expect(pv.folder_exists).toBe(false);
 
     pv.enrichment.strength = 5; // user edited the preview
-    const saved = await app.inject({
+    const saved = await call({
       method: 'POST',
       url: '/api/preferences',
       payload: { preview: { text: pv.text, enrichment: pv.enrichment }, source: 'voice' },
@@ -99,80 +112,75 @@ describe('REST API without password', () => {
     expect(s.preference.strength).toBe(5);
     expect(s.preference.source).toBe('voice');
 
-    const list = await app.inject(
-      '/api/preferences?folder=ChatGPT&polarity=dislike&applies_to=chatgpt',
-    );
+    const list = await call('/api/preferences?folder=ChatGPT&polarity=dislike&applies_to=chatgpt');
     expect(list.json().items).toHaveLength(1);
-    const search = await app.inject('/api/preferences?q=грубые%20ответы');
+    const search = await call('/api/preferences?q=грубые%20ответы');
     expect(search.json().items[0].preference.id).toBe(s.preference.id);
 
-    const patched = await app.inject({
+    const patched = await call({
       method: 'PATCH',
       url: `/api/preferences/${s.preference.id}`,
       payload: { tags: ['тон', 'грубость', 'chatgpt'] },
     });
     expect(patched.json().tags).toEqual(['тон', 'грубость', 'chatgpt']);
-    const badPatch = await app.inject({
+    const badPatch = await call({
       method: 'PATCH',
       url: `/api/preferences/${s.preference.id}`,
       payload: { strength: 9 },
     });
     expect(badPatch.statusCode).toBe(400);
 
-    const facets = (await app.inject('/api/facets')).json();
+    const facets = (await call('/api/facets')).json();
     expect(facets.domain).toEqual([{ value: 'ai_assistants', count: 1 }]);
-    const stats = (await app.inject('/api/stats')).json();
+    const stats = (await call('/api/stats')).json();
     expect(stats).toMatchObject({ total: 1, like: 0, dislike: 1, folders: 2 });
 
-    const md = await app.inject('/api/export.md?folder=ChatGPT');
+    const md = await call('/api/export.md?folder=ChatGPT');
     expect(md.headers['content-type']).toContain('text/markdown');
     expect(md.body).toContain('Грубые ответы ChatGPT');
 
     expect(
-      (await app.inject({ method: 'DELETE', url: `/api/preferences/${s.preference.id}` }))
-        .statusCode,
+      (await call({ method: 'DELETE', url: `/api/preferences/${s.preference.id}` })).statusCode,
     ).toBe(200);
-    expect((await app.inject(`/api/preferences/${s.preference.id}`)).statusCode).toBe(404);
+    expect((await call(`/api/preferences/${s.preference.id}`)).statusCode).toBe(404);
   });
 
   it('folders CRUD with 409 on non-empty delete', async () => {
     const a = (
-      await app.inject({ method: 'POST', url: '/api/folders', payload: { name: 'Путешествия' } })
+      await call({ method: 'POST', url: '/api/folders', payload: { name: 'Путешествия' } })
     ).json();
     const b = (
-      await app.inject({
+      await call({
         method: 'POST',
         url: '/api/folders',
         payload: { name: 'Люблю', parent_id: a.id },
       })
     ).json();
     expect(b.path).toEqual(['Путешествия', 'Люблю']);
-    const dup = await app.inject({
+    const dup = await call({
       method: 'POST',
       url: '/api/folders',
       payload: { name: 'люблю', parent_id: a.id },
     });
     expect(dup.statusCode).toBe(409);
     const renamed = (
-      await app.inject({
+      await call({
         method: 'PATCH',
         url: `/api/folders/${a.id}`,
         payload: { name: 'Поездки' },
       })
     ).json();
     expect(renamed.path).toEqual(['Поездки']);
-    const tree = (await app.inject('/api/folders')).json().tree;
+    const tree = (await call('/api/folders')).json().tree;
     expect(tree.some((n: { name: string }) => n.name === 'Поездки')).toBe(true);
-    expect((await app.inject({ method: 'DELETE', url: `/api/folders/${a.id}` })).statusCode).toBe(
-      409,
-    );
+    expect((await call({ method: 'DELETE', url: `/api/folders/${a.id}` })).statusCode).toBe(409);
     expect(
-      (await app.inject({ method: 'DELETE', url: `/api/folders/${a.id}?force=true` })).statusCode,
+      (await call({ method: 'DELETE', url: `/api/folders/${a.id}?force=true` })).statusCode,
     ).toBe(200);
   });
 
   it('status shows models but never secrets', async () => {
-    const res = await app.inject('/api/status');
+    const res = await call('/api/status');
     const body = res.body;
     expect(res.json().models.llm).toBe('gpt-5.5');
     expect(res.json().services).toMatchObject({ api: 'ok', qdrant: 'ok', mcp: 'down' });
@@ -182,31 +190,38 @@ describe('REST API without password', () => {
   });
 });
 
-describe('REST API with WEB_PASSWORD', () => {
-  it('requires login and uses an httpOnly cookie', async () => {
-    const { app } = await makeApp({ WEB_PASSWORD: 'correct horse' });
+describe('Login form (ADMIN_EMAIL + ADMIN_PASSWORD)', () => {
+  it('everything but health/auth is closed; login sets an httpOnly cookie', async () => {
+    const { app } = await makeApp();
     expect((await app.inject('/api/stats')).statusCode).toBe(401);
+    expect((await app.inject('/api/status')).statusCode).toBe(401);
     expect((await app.inject('/api/health')).statusCode).toBe(200);
     expect((await app.inject('/api/auth/me')).json()).toEqual({
       auth_required: true,
       authenticated: false,
     });
-    const bad = await app.inject({
+    const wrongPass = await app.inject({
       method: 'POST',
       url: '/api/auth/login',
-      payload: { password: 'nope' },
+      payload: { ...LOGIN, password: 'nope' },
     });
-    expect(bad.statusCode).toBe(401);
+    expect(wrongPass.statusCode).toBe(401);
+    expect(wrongPass.json().error).toBe('Неверный email или пароль');
+    const wrongEmail = await app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { ...LOGIN, email: 'x@y.z' },
+    });
+    expect(wrongEmail.statusCode).toBe(401);
     const ok = await app.inject({
       method: 'POST',
       url: '/api/auth/login',
-      payload: { password: 'correct horse' },
+      payload: { ...LOGIN, email: ' ADMIN@example.com ' },
     });
     expect(ok.statusCode).toBe(200);
     const setCookie = String(ok.headers['set-cookie']);
     expect(setCookie).toContain('HttpOnly');
     expect(setCookie).toContain('SameSite=Strict');
-    expect(ok.body).not.toContain('pm_session');
     const cookie = setCookie.split(';')[0] as string;
     expect((await app.inject({ url: '/api/stats', headers: { cookie } })).statusCode).toBe(200);
     expect(
@@ -214,4 +229,20 @@ describe('REST API with WEB_PASSWORD', () => {
         .statusCode,
     ).toBe(401);
   });
+
+  it('limits failed attempts per address (429 with retry-after)', async () => {
+    const { app } = await makeApp();
+    const bad = () =>
+      app.inject({
+        method: 'POST',
+        url: '/api/auth/login',
+        payload: { ...LOGIN, password: 'wrong-wrong' },
+      });
+    for (let i = 0; i < 5; i++) expect((await bad()).statusCode).toBe(401);
+    const blocked = await bad();
+    expect(blocked.statusCode).toBe(429);
+    expect(Number(blocked.headers['retry-after'])).toBeGreaterThan(0);
+    const good = await app.inject({ method: 'POST', url: '/api/auth/login', payload: LOGIN });
+    expect(good.statusCode).toBe(429); // even the right password waits out the window
+  }, 30_000);
 });

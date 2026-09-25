@@ -57,7 +57,7 @@ export function metaRoutes(app: FastifyInstance, core: Core, opts: MetaOptions):
       },
       mcp: { url: `${c.PUBLIC_URL}/mcp`, allow_write: c.MCP_ALLOW_WRITE },
       public_url: c.PUBLIC_URL,
-      auth_enabled: c.WEB_PASSWORD.length > 0,
+      auth_enabled: true,
       search: { top_k: c.SEARCH_TOP_K, conflict_score: c.CONFLICT_SCORE },
       max_audio_mb: c.MAX_AUDIO_MB,
       // публичные ссылки для шапки и подвала (не секреты); пустые — не показываются

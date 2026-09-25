@@ -67,7 +67,18 @@ export const envSchema = z.object({
   ),
   MCP_ALLOW_WRITE: bool(true),
 
-  WEB_PASSWORD: optionalString(''),
+  ADMIN_EMAIL: trimmed(
+    z
+      .string({ error: 'заполните (email для входа в веб-интерфейс)' })
+      .min(1, 'заполните (email для входа в веб-интерфейс)')
+      .pipe(z.email({ error: 'должно быть email-адресом' })),
+  ),
+  ADMIN_PASSWORD: trimmed(
+    z
+      .string({ error: 'заполните (пароль для входа в веб-интерфейс)' })
+      .min(1, 'заполните (пароль для входа в веб-интерфейс)')
+      .min(8, 'слишком короткий: нужно не меньше 8 символов'),
+  ),
   PUBLIC_URL: url('http://localhost:3000').transform((v) => v.replace(/\/+$/, '')),
   WEB_PORT: int(3000, 1, 65535),
 

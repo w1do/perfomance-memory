@@ -21,7 +21,7 @@ export function createLogger(level: string, name: string): Logger {
         '*.token',
         'OPENAI_API_KEY',
         'MCP_TOKEN',
-        'WEB_PASSWORD',
+        'ADMIN_PASSWORD',
         'QDRANT_API_KEY',
       ],
       censor: '[скрыто]',

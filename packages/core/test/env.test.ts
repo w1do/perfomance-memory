@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { EnvError, loadConfig } from '../src/env.js';
 
-const base = { OPENAI_API_KEY: 'sk-test', MCP_TOKEN: 'a-long-enough-token-123' };
+const base = {
+  OPENAI_API_KEY: 'sk-test',
+  MCP_TOKEN: 'a-long-enough-token-123',
+  ADMIN_EMAIL: 'admin@example.com',
+  ADMIN_PASSWORD: 'secret-pass',
+};
 
 describe('env validation', () => {
   it('applies defaults for optional variables', () => {
@@ -51,7 +56,12 @@ describe('env validation', () => {
       loadConfig({});
       expect.fail('should throw');
     } catch (e) {
-      expect((e as EnvError).variables.sort()).toEqual(['MCP_TOKEN', 'OPENAI_API_KEY']);
+      expect((e as EnvError).variables.sort()).toEqual([
+        'ADMIN_EMAIL',
+        'ADMIN_PASSWORD',
+        'MCP_TOKEN',
+        'OPENAI_API_KEY',
+      ]);
     }
   });
 
@@ -64,6 +74,22 @@ describe('env validation', () => {
       expect(err.variables.sort()).toEqual(['CONFLICT_SCORE', 'EMBED_DIM', 'QDRANT_URL']);
       expect(err.message).not.toContain('sk-test');
     }
+  });
+
+  it('admin login is required: empty, invalid email or short password → clear errors', () => {
+    try {
+      loadConfig({ ...base, ADMIN_EMAIL: '', ADMIN_PASSWORD: '' });
+      expect.fail('should throw');
+    } catch (e) {
+      expect((e as EnvError).variables.sort()).toEqual(['ADMIN_EMAIL', 'ADMIN_PASSWORD']);
+      expect((e as EnvError).message).toContain('email для входа');
+    }
+    expect(() => loadConfig({ ...base, ADMIN_EMAIL: 'admin' })).toThrow(
+      /ADMIN_EMAIL — должно быть email/,
+    );
+    expect(() => loadConfig({ ...base, ADMIN_PASSWORD: 'short' })).toThrow(
+      /ADMIN_PASSWORD — слишком короткий/,
+    );
   });
 
   it('optional public links: empty is allowed, garbage is rejected', () => {

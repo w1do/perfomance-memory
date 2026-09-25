@@ -1,27 +1,35 @@
+/**
+ * Вход в веб-интерфейс по ADMIN_EMAIL и ADMIN_PASSWORD из .env. Сессия — подписанная httpOnly-cookie
+ * (без токенов во фронтенде); ключ подписи выводится из обеих переменных, их смена разлогинивает всех.
+ * Все /api/* закрыты, кроме health и auth/*. MCP (/mcp) защищён отдельно — Bearer MCP_TOKEN.
+ */
 import { createHash, createHmac, timingSafeEqual } from 'node:crypto';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import type { Config } from '@preference-memory/core';
+import { LoginLimiter } from './rateLimit.js';
 
 export const SESSION_COOKIE = 'pm_session';
 const SESSION_DAYS = 30;
 
 const digest = (s: string) => createHash('sha256').update(s).digest();
+const same = (a: string, b: string) => timingSafeEqual(digest(a), digest(b));
 
-/** Stateless signed session: "<expiresMs>.<hmac>". Key is derived from WEB_PASSWORD. */
+/** Stateless signed session: "<expiresMs>.<hmac>". */
 export class Sessions {
   private readonly key: Buffer;
 
-  constructor(private readonly password: string) {
-    this.key = digest(`preference-memory-session:${password}`);
+  constructor(
+    private readonly email: string,
+    private readonly password: string,
+  ) {
+    this.key = digest(`preference-memory-session:${email.toLowerCase()}:${password}`);
   }
 
-  get enabled(): boolean {
-    return this.password.length > 0;
-  }
-
-  checkPassword(candidate: string): boolean {
-    return timingSafeEqual(digest(candidate), digest(this.password));
+  checkCredentials(email: string, password: string): boolean {
+    const emailOk = same(email.trim().toLowerCase(), this.email.toLowerCase());
+    const passwordOk = same(password, this.password);
+    return emailOk && passwordOk;
   }
 
   issue(now = Date.now()): { value: string; maxAge: number } {
@@ -46,32 +54,42 @@ const PUBLIC_PATHS = new Set([
   '/api/auth/me',
   '/api/auth/logout',
 ]);
+const loginBody = z.object({ email: z.string().max(320), password: z.string().max(500) });
 
 export function registerAuth(app: FastifyInstance, config: Config): void {
-  const sessions = new Sessions(config.WEB_PASSWORD);
+  const sessions = new Sessions(config.ADMIN_EMAIL, config.ADMIN_PASSWORD);
+  const limiter = new LoginLimiter();
   const secure = config.PUBLIC_URL.startsWith('https://');
 
   app.addHook('onRequest', async (req: FastifyRequest, reply: FastifyReply) => {
-    if (!sessions.enabled) return;
     const path = req.url.split('?')[0] ?? '';
     if (PUBLIC_PATHS.has(path)) return;
     if (!sessions.verify(req.cookies[SESSION_COOKIE])) {
-      return reply.status(401).send({ error: 'Нужен вход по паролю' });
+      return reply.status(401).send({ error: 'Нужен вход' });
     }
   });
 
   app.get('/api/auth/me', async (req) => ({
-    auth_required: sessions.enabled,
-    authenticated: !sessions.enabled || sessions.verify(req.cookies[SESSION_COOKIE]),
+    auth_required: true,
+    authenticated: sessions.verify(req.cookies[SESSION_COOKIE]),
   }));
 
   app.post('/api/auth/login', async (req, reply) => {
-    const { password } = z.object({ password: z.string().max(500) }).parse(req.body);
-    if (!sessions.enabled) return { ok: true };
-    if (!sessions.checkPassword(password)) {
-      await new Promise((r) => setTimeout(r, 600));
-      return reply.status(401).send({ error: 'Неверный пароль' });
+    const wait = limiter.retryAfter(req.ip);
+    if (wait > 0) {
+      return reply
+        .status(429)
+        .header('retry-after', String(wait))
+        .send({ error: `Слишком много попыток. Повторите через ${Math.ceil(wait / 60)} мин.` });
     }
+    const { email, password } = loginBody.parse(req.body);
+    if (!sessions.checkCredentials(email, password)) {
+      limiter.fail(req.ip);
+      req.log.warn({ ip: req.ip }, 'login failed');
+      await new Promise((r) => setTimeout(r, 600));
+      return reply.status(401).send({ error: 'Неверный email или пароль' });
+    }
+    limiter.reset(req.ip);
     const s = sessions.issue();
     reply.setCookie(SESSION_COOKIE, s.value, {
       httpOnly: true,

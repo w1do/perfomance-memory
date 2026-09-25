@@ -20,8 +20,8 @@
 - Сервис `backup`: снимки всех коллекций Qdrant по расписанию (`BACKUP_INTERVAL_HOURS`), ротация
   (`BACKUP_KEEP`), копия `PREFERENCES.md`, атомарная запись, healthcheck по свежести последней копии, восстановление
   `restore.js`. Логика — `packages/core/src/backup/*`, тест полного цикла «бэкап → потеря → восстановление».
-- CI/CD: `.gitlab-ci.yml` (lint → test с Qdrant-service → build образов в GitLab Container Registry → deploy в Dokploy
-  по webhook) и `docker-compose.prod.yml` (образы из registry, без сборки на сервере).
+- CI/CD: GitHub Actions `.github/workflows/ci.yml` (lint → test с Qdrant-service → build образов в GitHub Container
+  Registry → deploy в Dokploy по webhook; `.gitlab-ci.yml` удалён) и `docker-compose.prod.yml` (образы из registry, без сборки на сервере).
 - Лицензия PolyForm Noncommercial 1.0.0 (`LICENSE`, поле `license` во всех package.json).
 - Ротация логов (json-file, 3 × 10 МБ) у всех контейнеров; имена образов `${REGISTRY_IMAGE}/<сервис>:${IMAGE_TAG}`.
 - Инструкция MCP: шаги с номерами и моноширинными «пилюлями», плашка «Состояние» (сервисы, запись, модели таблицей);
@@ -34,6 +34,12 @@
 - Подвал: вместо списка наборов склада — «Сделано для YouTube-канала W1DO_DIGITAL»; атрибуция перенесена в README.
 
 - Подпись подвала «W1DO_DIGITAL» — ссылка на YouTube-канал (`YOUTUBE_URL` в `.env`).
+
+- Вход в веб-интерфейс по `ADMIN_EMAIL` + `ADMIN_PASSWORD` из `.env` (обязательны; заменили `WEB_PASSWORD`):
+  форма email + пароль, httpOnly-cookie на 30 дней, лимит 5 неудачных попыток за 15 минут (429). MCP по-прежнему
+  защищён Bearer `MCP_TOKEN`.
+
+- Демо-скриншоты панели в `docs/screenshots/` и галерея «Demo» в README.
 
 ### Изменено
 - Веб, редизайн «Aurora Glass+» (frost-01), фундамент: стили разбиты на файлы ≤150 строк (`tokens-dark.css`,

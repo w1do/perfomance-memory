@@ -13,6 +13,8 @@ export function testConfig(overrides: Record<string, string> = {}) {
   return loadConfig({
     OPENAI_API_KEY: 'sk-test',
     MCP_TOKEN: 'test-token-0123456789abcdef',
+    ADMIN_EMAIL: 'admin@example.com',
+    ADMIN_PASSWORD: 'correct horse battery',
     QDRANT_URL: inject('qdrantUrl'),
     QDRANT_COLLECTION: `t_prefs_${suffix}`,
     QDRANT_FOLDERS_COLLECTION: `t_folders_${suffix}`,

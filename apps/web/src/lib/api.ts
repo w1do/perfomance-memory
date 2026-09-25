@@ -55,7 +55,8 @@ const qs = (params: Record<string, string | number | undefined>) => {
 
 export const api = {
   me: () => request<{ auth_required: boolean; authenticated: boolean }>('GET', '/api/auth/me'),
-  login: (password: string) => request<{ ok: true }>('POST', '/api/auth/login', { password }),
+  login: (email: string, password: string) =>
+    request<{ ok: true }>('POST', '/api/auth/login', { email, password }),
   logout: () => request<{ ok: true }>('POST', '/api/auth/logout'),
 
   transcribe: (blob: Blob, filename: string) => {
