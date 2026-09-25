@@ -122,3 +122,29 @@ export function detectTargets(text: string): string[] {
   const hidden = new Set(found.flatMap((name) => SUBSUMES[name] ?? []));
   return found.filter((name) => !hidden.has(name));
 }
+
+/** Что подразумевает цель стека: проект на Laravel — это и PHP, GitLab CI — это и GitLab, и git. */
+const IMPLIES: Record<string, string[]> = {
+  ...SUBSUMES,
+  laravel: ['php'],
+  octane: ['laravel', 'php'],
+  horizon: ['laravel', 'php'],
+  pint: ['php'],
+  phpstan: ['php'],
+  composer: ['php'],
+  symfony: ['php'],
+  next: ['react'],
+  nuxt: ['vue'],
+};
+
+/** Цели вместе со всем, что они подразумевают (для стека проекта). */
+export function withImplied(targets: Iterable<string>): Set<string> {
+  const out = new Set<string>();
+  const add = (t: string) => {
+    if (out.has(t)) return;
+    out.add(t);
+    (IMPLIES[t] ?? []).forEach(add);
+  };
+  for (const t of targets) add(t);
+  return out;
+}

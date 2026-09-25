@@ -1,5 +1,6 @@
 /**
- * get_context_for_task — главный инструмент. Ответ: жёсткие ограничения, ВСЕ правила названного проекта,
+ * get_context_for_task — главный инструмент. Ответ: жёсткие ограничения, ВСЕ правила названного проекта и ВСЕ общие
+ * правила его стека (наследование),
  * правила по задаче (top_k), прочие жёсткие правила (уровень или ограничения) и строка «ещё N не показано», если что-то отрезано.
  */
 import { z } from 'zod';
@@ -29,7 +30,8 @@ export function registerContextTool(server: Server, core: Core): void {
     name: 'get_context_for_task',
     description:
       "Call this at the start of any task to load the user's likes, dislikes and hard constraints. " +
-      'Detects the relevant domain/project from the task description (name the project in the task to get ALL its rules), ' +
+      'Detects the relevant domain/project from the task description (name the project in the task to get ALL its rules ' +
+      'and ALL general rules of its stack, e.g. PHP/Laravel/CI), ' +
       'filters by metadata and returns the rules grouped by folder, with all constraints and every hard rule. Each rule has a level: ' +
       'hard (violation = defect), default (deviate only with a stated reason), taste (mild). Reports how many matching rules were not shown.',
     parameters: z.object({
@@ -56,9 +58,17 @@ export function registerContextTool(server: Server, core: Core): void {
       const parts = [
         `Контекст задачи — ${scope || 'все области'}`,
         `Уровни: ${LEVELS.map((l) => `«${LEVEL_LABEL[l]}» — ${LEVEL_MEANING[l]}`).join('; ')}.`,
-        hardConstraintsBlock([...res.project_rules, ...ranked, ...res.hard_constraints]),
+        hardConstraintsBlock([
+          ...res.project_rules,
+          ...res.stack_rules,
+          ...ranked,
+          ...res.hard_constraints,
+        ]),
         res.project_rules.length
           ? `# Проект ${res.context.project} — все правила (${res.project_rules.length})\n${formatByFolder(res.project_rules)}`
+          : '',
+        res.stack_rules.length
+          ? `# Общие правила стека проекта (${res.stack_rules.length}) — ${res.stack.join(', ')}\n${formatByFolder(res.stack_rules)}`
           : '',
         ranked.length ? `# Правила по задаче\n${formatByFolder(ranked)}` : '',
         res.hard_constraints.length
@@ -68,7 +78,11 @@ export function registerContextTool(server: Server, core: Core): void {
           ? `Ещё ${rulesCount(res.omitted)} в этих областях не ${res.omitted % 10 === 1 && res.omitted % 100 !== 11 ? 'показано' : 'показаны'} — get_preferences с запросом или get_folder вернут их.`
           : '',
       ];
-      const count = res.project_rules.length + ranked.length + res.hard_constraints.length;
+      const count =
+        res.project_rules.length +
+        res.stack_rules.length +
+        ranked.length +
+        res.hard_constraints.length;
       const text = parts.filter(Boolean).join('\n\n');
       return { text: count ? text : `${parts[0]}\n\nПравил не найдено.`, count };
     }),
