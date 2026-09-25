@@ -20,3 +20,20 @@ describe('tokenize + BM25', () => {
     expect(bm25Query('код код').values).toEqual([1]);
   });
 });
+
+describe('rulesCount', () => {
+  it('declines «правило» by number', async () => {
+    const { rulesCount } = await import('../src/format/text.js');
+    expect([1, 4, 5, 11, 12, 21, 22, 25, 104].map(rulesCount)).toEqual([
+      '1 правило',
+      '4 правила',
+      '5 правил',
+      '11 правил',
+      '12 правил',
+      '21 правило',
+      '22 правила',
+      '25 правил',
+      '104 правила',
+    ]);
+  });
+});

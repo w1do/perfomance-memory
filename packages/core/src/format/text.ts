@@ -46,3 +46,16 @@ export function formatTree(nodes: FolderNode[], indent = 0): string {
     })
     .join('\n');
 }
+
+/** «1 правило», «4 правила», «12 правил» — число с существительным в нужной форме. */
+export function rulesCount(n: number): string {
+  const d = n % 10;
+  const dd = n % 100;
+  const word =
+    d === 1 && dd !== 11
+      ? 'правило'
+      : d >= 2 && d <= 4 && (dd < 12 || dd > 14)
+        ? 'правила'
+        : 'правил';
+  return `${n} ${word}`;
+}

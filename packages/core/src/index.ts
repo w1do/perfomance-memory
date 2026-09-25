@@ -18,7 +18,7 @@ export { EnrichmentError, normalizeEnrichment } from './preferences/normalize.js
 export { embeddingText } from './preferences/payload.js';
 export { buildMarkdown, formatConstraint, levelBadge } from './export/markdown.js';
 export { MAIN_FILE } from './export/writer.js';
-export { formatByFolder, formatRule, formatTree } from './format/text.js';
+export { formatByFolder, formatRule, formatTree, rulesCount } from './format/text.js';
 export { buildPreferenceFilter, normalizeFolderPath } from './qdrant/filters.js';
 export { PREFERENCE_INDEXES, FOLDER_INDEXES, indexTypeName } from './qdrant/schema.js';
 export { Store } from './qdrant/store.js';

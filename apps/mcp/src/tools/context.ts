@@ -6,6 +6,7 @@ import { z } from 'zod';
 import {
   formatByFolder,
   formatConstraint,
+  rulesCount,
   LEVEL_LABEL,
   LEVEL_MEANING,
   LEVELS,
@@ -64,7 +65,7 @@ export function registerContextTool(server: Server, core: Core): void {
           ? `# Прочие жёсткие правила\n${formatByFolder(res.hard_constraints)}`
           : '',
         res.omitted
-          ? `Ещё ${res.omitted} правил в этих областях не показано — get_preferences с запросом или get_folder вернут их.`
+          ? `Ещё ${rulesCount(res.omitted)} в этих областях не ${res.omitted % 10 === 1 && res.omitted % 100 !== 11 ? 'показано' : 'показаны'} — get_preferences с запросом или get_folder вернут их.`
           : '',
       ];
       const count = res.project_rules.length + ranked.length + res.hard_constraints.length;
