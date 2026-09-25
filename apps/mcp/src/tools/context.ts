@@ -18,10 +18,11 @@ import { csvList, logged, topK, type Server } from './common.js';
 
 function inheritedBy(scope: { targets: string[]; topics: string[] }): string {
   const parts = [
-    scope.targets.length ? `метки: ${scope.targets.join(', ')}` : '',
-    scope.topics.length ? `темы: ${scope.topics.join(', ')}` : '',
+    scope.targets.length ? `меткам (${scope.targets.join(', ')})` : '',
+    scope.topics.length ? `темам (${scope.topics.join(', ')})` : '',
+    'областям проекта',
   ].filter(Boolean);
-  return parts.length ? `Наследуются по ${parts.join('; ')} и по областям проекта.` : '';
+  return `Наследуются по ${parts.join(', ')}.`;
 }
 
 function hardConstraintsBlock(prefs: PreferencePayload[]): string {
