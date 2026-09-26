@@ -72,6 +72,7 @@ describe('MCP tools over the in-memory transport', () => {
       'get_project',
       'list_folders',
       'list_projects',
+      'redistribute_rules',
     ]);
     const main = tools.find((t) => t.name === 'get_context_for_task');
     expect(main?.description).toContain(
@@ -95,6 +96,8 @@ describe('MCP tools over the in-memory transport', () => {
     expect(out).toContain('почему: Длинную функцию трудно прочитать и проверить целиком.');
     expect(out).toContain('не так: Одна функция на 120 строк');
     expect(out).toContain('Строгая типизация в PHP');
+    expect(out).toContain('# Как работать агенту — для любой задачи');
+    expect(out).toContain('Ответы списком с конкретными шагами');
     expect(out).not.toContain('Рыбалка');
   });
 
@@ -107,6 +110,11 @@ describe('MCP tools over the in-memory transport', () => {
     );
     expect(out).toContain('PHP');
     expect(out).not.toContain('Понятные имена переменных');
+  });
+
+  it('redistribute_rules without apply only reports the plan', async () => {
+    const out = text(await client.callTool({ name: 'redistribute_rules', arguments: {} }));
+    expect(out).toBe('Все общие правила на своих местах — переносить нечего.');
   });
 
   it('get_preferences with filters', async () => {
@@ -216,6 +224,7 @@ describe('MCP_ALLOW_WRITE=false', () => {
     const client = await connect(core);
     const { tools } = await client.listTools();
     expect(tools.map((t) => t.name)).not.toContain('add_preference');
+    expect(tools.map((t) => t.name)).not.toContain('redistribute_rules');
     expect(tools).toHaveLength(6);
     await client.close();
   });
@@ -289,7 +298,7 @@ describe('HTTP transport with MCP_TOKEN', () => {
         }),
       );
       const { tools } = await client.listTools();
-      expect(tools.length).toBe(7);
+      expect(tools.length).toBe(8);
       await client.close();
     } finally {
       await server.stop();

@@ -1,6 +1,7 @@
 /**
  * Главный вход агента (get_context_for_task): по задаче определяет домены и проект, сужает по индексам и отдаёт:
- * все правила названного проекта (без обрезки top_k), все общие правила, которые он наследует (scope.ts), ранжированные правила доменов (top_k), все жёсткие
+ * все правила названного проекта (без обрезки top_k), все общие правила, которые он наследует (scope.ts), правила работы ассистента
+ * (домен ai_assistants — контекст всегда читает агент, поэтому они в каждой задаче), ранжированные правила доменов (top_k), все жёсткие
  * правила этих доменов (уровень «жёстко» или ограничения) и число правил, которые подошли, но не показаны (omitted) — агент видит, что отрезано.
  */
 import type { AiProvider, TaskContext } from '../ai/provider.js';
@@ -12,12 +13,17 @@ import { mentions } from '../text/mentions.js';
 import { foreignTo, projectScope } from './scope.js';
 import type { PreferencePayload, ScoredPreference } from '../types.js';
 
+/** Домен правил о том, как ассистент работает с пользователем: их читатель — любой агент, поэтому они входят в каждую задачу. */
+const ASSISTANT_DOMAIN = 'ai_assistants';
+
 export interface TaskContextResult {
   context: TaskContext;
   /** все правила названного проекта, сильные первыми */
   project_rules: PreferencePayload[];
   /** общие правила, которые наследует проект, — целиком, без ранжирования (scope.ts) */
   inherited: PreferencePayload[];
+  /** правила работы ассистента (домен ai_assistants, вне проектов) — в каждой задаче, без ранжирования */
+  assistant: PreferencePayload[];
   /** область проекта: метки и темы, по которым правила наследуются */
   scope: { targets: string[]; topics: string[] };
   /** ранжированные правила доменов задачи (вне проекта), не больше top_k */
@@ -74,9 +80,13 @@ export async function contextForTask(
   const { rules, ...area } = ctx.project
     ? await projectScope(deps.prefs, project_rules, ctx, applies)
     : { targets: [], topics: [], rules: [] };
-  const inherited = rules.sort(byImportance);
-  const shown = new Set([...project_rules, ...inherited].map((p) => p.id));
-  const base = { context: ctx, project_rules, inherited, scope: area };
+  const assistant = (await deps.prefs.all({ domain: ASSISTANT_DOMAIN, applies_to: applies }))
+    .filter((p) => !p.project)
+    .sort(byImportance);
+  const assistantIds = new Set(assistant.map((p) => p.id));
+  const inherited = rules.filter((p) => !assistantIds.has(p.id)).sort(byImportance);
+  const shown = new Set([...project_rules, ...inherited, ...assistant].map((p) => p.id));
+  const base = { context: ctx, project_rules, inherited, assistant, scope: area };
   const foreign = ctx.project ? foreignTo(ctx.project, area.targets) : () => false;
 
   // Домены задачи; без доменов и без проекта — поиск по всей памяти.

@@ -79,14 +79,15 @@ Payload-индексы создаются при старте, идемпоте�
 ## 6. MCP-сервер (сервис mcp, FastMCP)
 - Только FastMCP поверх официального SDK, никаких самописных JSON-RPC обработчиков.
 - Авторизация через опцию authenticate FastMCP: заголовок Authorization: Bearer <MCP_TOKEN>, иначе 401. MCP_TOKEN берётся только из .env.
-- Если MCP_ALLOW_WRITE=false — инструмент add_preference не регистрируется.
+- Если MCP_ALLOW_WRITE=false — инструменты add_preference и redistribute_rules не регистрируются.
 - Схемы параметров — zod; описания инструментов и параметров на английском, ответы — на языке правил, компактно, по папкам; большие ветки — с cursor и лимитом.
 - Логи вызовов: имя инструмента, длительность, число результатов, без секретов.
 Инструменты:
-- get_context_for_task({ task, applies_to?, top_k? }) — ГЛАВНЫЙ: по описанию задачи определяет domain/project, фильтрует по индексам, отдаёт релевантные правила со всеми constraints. Описание: "Call this at the start of any task to load the user's likes, dislikes and hard constraints."
+- get_context_for_task({ task, applies_to?, top_k? }) — ГЛАВНЫЙ: по описанию задачи определяет domain/project, фильтрует по индексам, отдаёт релевантные правила со всеми constraints. Правила работы ассистента (домен ai_assistants, вне проектов) входят в каждый ответ отдельной группой «Как работать агенту — для любой задачи»: контекст всегда читает агент. Описание: "Call this at the start of any task to load the user's likes, dislikes and hard constraints."
 - get_preferences({ query, folder?, domain?, project?, polarity?, applies_to?, tags?, top_k? }) — фильтр + гибридный поиск.
 - get_folder({ path, cursor? }), list_folders(), list_projects(), get_project({ name }).
 - add_preference({ text, project? }) — тот же конвейер, source="mcp".
+- redistribute_rules({ apply? }) — «Распределить»: общие правила заново проходят выбор папки и области (конвейер сохранения); без apply — план переносов, с apply=true — перенос и удаление опустевших папок; правила проектов не трогаются.
 Ресурсы: `preferences://main`, шаблон `preferences://folder/{path}`.
 Промпт: `apply_my_preferences` — «загрузи предпочтения через get_context_for_task и соблюдай constraints».
 README: как подключить агентов (это настройка на стороне клиента, не сервиса):

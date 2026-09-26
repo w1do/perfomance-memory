@@ -1,7 +1,7 @@
 /**
  * get_context_for_task — главный инструмент. Ответ: жёсткие ограничения, ВСЕ правила названного проекта и ВСЕ общие
  * правила, которые он наследует (по меткам, темам и областям),
- * правила по задаче (top_k), прочие жёсткие правила (уровень или ограничения) и строка «ещё N не показано», если что-то отрезано.
+ * правила работы ассистента (в каждой задаче), правила по задаче (top_k), прочие жёсткие правила (уровень или ограничения) и строка «ещё N не показано», если что-то отрезано.
  */
 import { z } from 'zod';
 import {
@@ -41,6 +41,7 @@ export function registerContextTool(server: Server, core: Core): void {
       "Call this at the start of any task to load the user's likes, dislikes and hard constraints. " +
       'Detects the relevant domain/project from the task description (name the project in the task to get ALL its rules ' +
       'and ALL general rules it inherits by its labels, topics and domains), ' +
+      'always adds the rules on how the assistant itself should work, ' +
       'filters by metadata and returns the rules grouped by folder, with all constraints and every hard rule. Each rule has a level: ' +
       'hard (violation = defect), default (deviate only with a stated reason), taste (mild). Reports how many matching rules were not shown.',
     parameters: z.object({
@@ -70,6 +71,7 @@ export function registerContextTool(server: Server, core: Core): void {
         hardConstraintsBlock([
           ...res.project_rules,
           ...res.inherited,
+          ...res.assistant,
           ...ranked,
           ...res.hard_constraints,
         ]),
@@ -78,6 +80,9 @@ export function registerContextTool(server: Server, core: Core): void {
           : '',
         res.inherited.length
           ? `# Общие правила, которые наследует проект (${res.inherited.length})\n${inheritedBy(res.scope)}\n${formatByFolder(res.inherited)}`
+          : '',
+        res.assistant.length
+          ? `# Как работать агенту — для любой задачи (${res.assistant.length})\n${formatByFolder(res.assistant)}`
           : '',
         ranked.length ? `# Правила по задаче\n${formatByFolder(ranked)}` : '',
         res.hard_constraints.length
@@ -90,6 +95,7 @@ export function registerContextTool(server: Server, core: Core): void {
       const count =
         res.project_rules.length +
         res.inherited.length +
+        res.assistant.length +
         ranked.length +
         res.hard_constraints.length;
       const text = parts.filter(Boolean).join('\n\n');

@@ -3,6 +3,7 @@ import type {
   Facets,
   Filters,
   FolderNode,
+  Placement,
   Preference,
   Preview,
   SaveResult,
@@ -98,5 +99,8 @@ export const api = {
   merge: (keep: string, remove: string[]) =>
     request<Preference>('POST', '/api/hygiene/merge', { keep, remove }),
   distinct: (ids: string[]) => request<{ ok: true }>('POST', '/api/hygiene/distinct', { ids }),
+  placements: () => request<{ placements: Placement[] }>('GET', '/api/hygiene/placements'),
+  place: (moves: { id: string; to: string[]; domain: string }[]) =>
+    request<{ moved: number; folders_removed: number }>('POST', '/api/hygiene/place', { moves }),
   exportMd: (folder?: string) => request<string>('GET', `/api/export.md${qs({ folder })}`),
 };

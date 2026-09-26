@@ -126,6 +126,16 @@ export interface Status {
   };
 }
 
+/** Перенос из плана «Распределить»: правило, откуда и куда, область до и после. */
+export interface Placement {
+  id: string;
+  statement: string;
+  from: string[];
+  to: string[];
+  domain_from: string;
+  domain_to: string;
+}
+
 /** Группа правил, которые требуют одного и того же (поиск старых дублей). */
 export interface DuplicateGroup {
   keep: string;

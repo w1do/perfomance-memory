@@ -1,5 +1,6 @@
 /**
- * Гигиена памяти: поиск и слияние дублей, пометка «не дубли», приведение applies_to к словарю.
+ * Гигиена памяти: поиск и слияние дублей, пометка «не дубли», приведение applies_to к словарю,
+ * «Распределить» — общие правила заново по папкам (placement.ts).
  * Записи идут через write() сервиса правил — под тем же замком, со счётчиками папок и пересборкой PREFERENCES.md.
  */
 import { buildPreferenceFilter } from '../qdrant/filters.js';
@@ -9,6 +10,12 @@ import { upsertWithVectors, type PrefDeps } from './deps.js';
 import { findDuplicates } from './duplicates.js';
 import { cleanTags, splitTargets } from './guards.js';
 import { mergeRules } from './merge.js';
+import {
+  applyPlacements,
+  planPlacements,
+  type PlacementMove,
+  type PlaceResult,
+} from './placement.js';
 import { embeddingText } from './payload.js';
 import { PreferenceError } from './schemas.js';
 
@@ -21,6 +28,15 @@ export class HygieneService {
   ) {}
 
   duplicates = () => findDuplicates(this.deps);
+
+  /** План «Распределить»: общие правила, которым конвейер сохранения выбрал бы другую папку или область. */
+  placements = () => planPlacements(this.deps);
+
+  /** Переносит выбранные правила и удаляет опустевшие папки, откуда они уехали. */
+  place(moves: PlacementMove[]): Promise<PlaceResult> {
+    if (!moves.length) throw new PreferenceError('Нечего переносить', 400);
+    return this.write(() => applyPlacements(this.deps, moves));
+  }
 
   private async load(ids: string[]): Promise<PreferencePayload[]> {
     const found = await Promise.all(ids.map((id) => this.deps.store.getPreference(id)));

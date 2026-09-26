@@ -53,7 +53,7 @@ preference-memory/
 - `folders`: вектор `dense`; индексы parent_id, ancestors, domain, depth.
 
 ## MCP-инструменты (кратко, полностью — PROMPT.md §6)
-`get_context_for_task` (главный), `get_preferences`, `get_folder`, `list_folders`, `list_projects`, `get_project`, `add_preference` (только при `MCP_ALLOW_WRITE=true`). Ресурсы `preferences://main`, `preferences://folder/{path}`. Промпт `apply_my_preferences`.
+`get_context_for_task` (главный), `get_preferences`, `get_folder`, `list_folders`, `list_projects`, `get_project`, `add_preference` и `redistribute_rules` (только при `MCP_ALLOW_WRITE=true`). Ресурсы `preferences://main`, `preferences://folder/{path}`. Промпт `apply_my_preferences`.
 
 ## Порядок работы
 1. Проверь, что доступен MCP-сервер CMS (`assets_search`, `assets_get`, `palette_show`, `rules_genres`, `rules_show`, `rules_search`, `brand_storm`). Нет — остановись и сообщи.

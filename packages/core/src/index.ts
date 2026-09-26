@@ -25,6 +25,7 @@ export { Store } from './qdrant/store.js';
 export { tokenize } from './text/tokenize.js';
 export { canonicalTarget, detectTargets, targetMentioned } from './text/targets.js';
 export { HygieneService } from './preferences/hygiene.js';
+export type { Placement, PlacementMove, PlaceResult } from './preferences/placement.js';
 export type { DuplicateGroup } from './preferences/duplicates.js';
 export { bm25Document, bm25Query } from './text/bm25.js';
 export { createBackup, backupCollections, type BackupManifest } from './backup/snapshot.js';

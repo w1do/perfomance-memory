@@ -9,6 +9,7 @@ import { registerResources } from './resources.js';
 import { registerContextTool } from './tools/context.js';
 import { registerFolderTools } from './tools/folders.js';
 import { registerSearchTool } from './tools/search.js';
+import { registerPlacementTool } from './tools/placement.js';
 import { registerWriteTool } from './tools/write.js';
 
 export const VERSION = '1.0.0';
@@ -26,7 +27,10 @@ export function buildMcpServer(core: Core, opts: { authenticate?: boolean } = {}
   registerContextTool(server, core);
   registerSearchTool(server, core);
   registerFolderTools(server, core);
-  if (core.config.MCP_ALLOW_WRITE) registerWriteTool(server, core);
+  if (core.config.MCP_ALLOW_WRITE) {
+    registerWriteTool(server, core);
+    registerPlacementTool(server, core);
+  }
   registerResources(server, core);
   return server;
 }

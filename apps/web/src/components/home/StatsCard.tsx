@@ -1,6 +1,6 @@
 /**
  * Статистика (роль like, 3D-сердце): число правил, полоса «люблю / не люблю» (draw),
- * счётчики папок и проектов, «Найти дубли» (HygieneModal), последняя запись. Карточка Card из фундамента, токены frost-01.
+ * счётчики папок и проектов, «Найти дубли» (HygieneModal), «Распределить» (PlacementModal), последняя запись. Карточка Card из фундамента, токены frost-01.
  */
 import { useState } from 'react';
 import { useAsync } from '../../hooks/useAsync';
@@ -8,6 +8,7 @@ import { api } from '../../lib/api';
 import { formatDate } from '../Badges';
 import { Icon } from '../Icon';
 import { HygieneModal } from '../hygiene/HygieneModal';
+import { PlacementModal } from '../hygiene/PlacementModal';
 import { Card } from '../ui/Card';
 import { Tip } from '../ui/Tip';
 import { plural, RULES } from './plural';
@@ -20,6 +21,7 @@ export function StatsCard({ className = '', index = 2 }: { className?: string; i
   const active = like + dislike;
   const likeShare = active ? (like / active) * 100 : 0;
   const [hygiene, setHygiene] = useState(false);
+  const [placing, setPlacing] = useState(false);
 
   return (
     <Card
@@ -68,19 +70,34 @@ export function StatsCard({ className = '', index = 2 }: { className?: string; i
           Папки <span className="mono text-text">{data?.folders ?? 0}</span> · Проекты{' '}
           <span className="mono text-text">{data?.projects ?? 0}</span>
         </p>
-        <Tip content="Одинаковые по смыслу правила — слить в одно">
-          {(t) => (
-            <button
-              {...t}
-              type="button"
-              className="btn btn-ghost btn-sm"
-              disabled={total < 2}
-              onClick={() => setHygiene(true)}
-            >
-              <Icon name="search" /> Найти дубли
-            </button>
-          )}
-        </Tip>
+        <div className="flex flex-wrap gap-2">
+          <Tip content="Одинаковые по смыслу правила — слить в одно">
+            {(t) => (
+              <button
+                {...t}
+                type="button"
+                className="btn btn-ghost btn-sm"
+                disabled={total < 2}
+                onClick={() => setHygiene(true)}
+              >
+                <Icon name="search" /> Найти дубли
+              </button>
+            )}
+          </Tip>
+          <Tip content="Заново разложить общие правила по нужным папкам">
+            {(t) => (
+              <button
+                {...t}
+                type="button"
+                className="btn btn-ghost btn-sm"
+                disabled={total < 1}
+                onClick={() => setPlacing(true)}
+              >
+                <Icon name="folder-open" /> Распределить
+              </button>
+            )}
+          </Tip>
+        </div>
       </div>
 
       <div className="card-foot flex-col flex-nowrap gap-1">
@@ -96,6 +113,7 @@ export function StatsCard({ className = '', index = 2 }: { className?: string; i
         )}
       </div>
       {hygiene && <HygieneModal onClose={() => setHygiene(false)} />}
+      {placing && <PlacementModal onClose={() => setPlacing(false)} />}
     </Card>
   );
 }
