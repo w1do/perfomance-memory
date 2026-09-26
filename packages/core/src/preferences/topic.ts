@@ -1,7 +1,8 @@
 /**
  * «Разное» — только когда сферу правила определить нельзя. Если модель положила туда правило с известной сферой
- * (domain), тема берётся из данных: самая частая тема этой сферы в памяти пользователя; пока правил сферы нет —
- * название по умолчанию (DOMAIN_TOPIC). Подпапки и лист «Люблю»/«Не люблю» сохраняются.
+ * (domain) или назвала папку кодом самой сферы («ai_assistants»), тема берётся из данных: самая частая тема этой
+ * сферы в памяти пользователя; пока правил сферы нет — название по умолчанию (DOMAIN_TOPIC). Подпапки и лист
+ * «Люблю»/«Не люблю» сохраняются.
  */
 import { withPolarityLeaf } from '../folders/tree.js';
 import { squash } from '../text/targets.js';
@@ -23,8 +24,14 @@ export async function domainTopic(deps: PrefDeps, domain: string): Promise<strin
   return [...counts].sort((a, b) => b[1] - a[1])[0]?.[0] ?? DOMAIN_TOPIC[domain] ?? null;
 }
 
+/** Папка названа кодом области — «ai_assistants», «devops»: это не тема, а идентификатор. */
+const isDomainCode = (name: string, domain: string) =>
+  /^[a-z][a-z0-9_]*$/.test(name) && squash(name) === squash(domain);
+
 export async function rescueMisc(deps: PrefDeps, e: Enrichment): Promise<Enrichment> {
-  if (e.folder_path[0] !== MISC_FOLDER || e.project || NO_SUBJECT.has(e.domain)) return e;
+  const top = e.folder_path[0] ?? '';
+  const lost = top === MISC_FOLDER || isDomainCode(top, e.domain);
+  if (!lost || e.project || NO_SUBJECT.has(e.domain)) return e;
   const topic = await domainTopic(deps, e.domain);
   if (!topic) return e;
   const sub = e.folder_path.slice(1, -1);

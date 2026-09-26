@@ -135,3 +135,19 @@ describe('rescue from «Разное» drops a subfolder that repeats the topic'
     await core.qdrant.deleteCollection(core.config.QDRANT_FOLDERS_COLLECTION);
   });
 });
+
+describe('a folder named by the domain code is not a topic', () => {
+  it('«ai_assistants › Люблю» becomes the topic of the sphere', async () => {
+    const { core, ai } = await testCore();
+    ai.script('краткие ответы', rule('Краткие ответы', ['ClaudeCode', 'Люблю'], 'ai_assistants'));
+    await core.prefs.save({ text: 'краткие ответы', source: 'text' });
+    ai.script(
+      'правила по mcp',
+      rule('Правила по MCP', ['ai_assistants', 'Люблю'], 'ai_assistants'),
+    );
+    const { enrichment } = await core.prefs.preview('правила по mcp');
+    expect(enrichment.folder_path).toEqual(['ClaudeCode', 'Люблю']);
+    await core.qdrant.deleteCollection(core.config.QDRANT_COLLECTION);
+    await core.qdrant.deleteCollection(core.config.QDRANT_FOLDERS_COLLECTION);
+  });
+});
