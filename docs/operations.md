@@ -35,14 +35,10 @@ scripts/push-dump.sh user@ваш-сервер        # спросит подтв
 
 ## CI/CD и деплой (GitHub Actions → Dokploy)
 
-Два способа деплоя в Dokploy:
-
-- **Сборка на сервере из GitHub** — compose-приложение с файлом `docker-compose.yml`. У сервисов стоит
-  `pull_policy: build`: образы собираются из исходников, реестр не нужен. В Environment приложения — все переменные
-  из `.env.example` (обязательные: `OPENAI_API_KEY`, `MCP_TOKEN`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, для прода ещё
-  `PUBLIC_URL=https://ваш-домен`).
-- **Готовые образы из ghcr.io** (быстрее, без сборки на сервере) — файл `docker-compose.prod.yml`, образы собирает
-  GitHub Actions (ниже).
+Деплой в Dokploy использует тот же `docker-compose.yml`, что и локальная разработка. Образы для прода собирает
+GitHub Actions и кладёт в ghcr.io, Dokploy их тянет (`pull_policy: always`). В Environment приложения — все
+переменные из `.env.example` (обязательные: `OPENAI_API_KEY`, `MCP_TOKEN`, `ADMIN_EMAIL`, `ADMIN_PASSWORD`, для
+прода ещё `PUBLIC_URL=https://ваш-домен`).
 
 `.github/workflows/ci.yml`:
 
@@ -59,10 +55,9 @@ scripts/push-dump.sh user@ваш-сервер        # спросит подтв
    compose-приложения Dokploy. Без него `deploy` пропускается.
 2. Dokploy: Settings → Registry — `ghcr.io`, пользователь GitHub и Personal Access Token с правом `read:packages`
    (или сделайте пакеты публичными в GitHub → Packages).
-3. Dokploy: compose-приложение из этого репозитория, файл `docker-compose.prod.yml`; в Environment — ваш `.env` плюс
+3. Dokploy: compose-приложение из этого репозитория, файл `docker-compose.yml`; в Environment — ваш `.env` плюс
    `REGISTRY_IMAGE=ghcr.io/<владелец>/<репозиторий>` и `IMAGE_TAG=latest`; домен с HTTPS на сервис `web` (порт 80) и
    `PUBLIC_URL=https://ваш-домен`.
 
-`docker-compose.prod.yml` — те же сервисы, что и `docker-compose.yml`, но без `build`: образы только из registry
-(`pull_policy: always`). Откат: `IMAGE_TAG=<short-sha прошлой сборки>` в Dokploy → Redeploy.
+Откат: `IMAGE_TAG=<short-sha прошлой сборки>` в Dokploy → Redeploy.
 

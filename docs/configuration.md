@@ -35,7 +35,7 @@
 | `STUDIO_NAME` | пусто | Название студии в подвале (пусто — берётся домен из `STUDIO_URL`) |
 | `BACKUP_INTERVAL_HOURS` | `24` | Как часто сервис `backup` снимает копию Qdrant (1–168 ч) |
 | `BACKUP_KEEP` | `14` | Сколько последних копий хранить |
-| `REGISTRY_IMAGE` | `preference-memory` | Адрес образов в registry (`ghcr.io/<владелец>/<репозиторий>`); в `docker-compose.prod.yml` обязателен |
+| `REGISTRY_IMAGE` | `preference-memory` | Адрес образов в registry (`ghcr.io/<владелец>/<репозиторий>`); в проде (Dokploy) задаётся явно |
 | `IMAGE_TAG` | `local` | Тег образов; в продакшене `latest` или short SHA сборки (откат) |
 
 Секреты (ключи, токены, пароль) не попадают в логи, ответы API и фронтенд. Контейнер `web` (nginx) `.env` не
