@@ -18,6 +18,7 @@ import { reindexAll, reindexBackupPath } from './qdrant/reindex.js';
 import { ensureSchema, waitForQdrant } from './qdrant/setup.js';
 import { Store } from './qdrant/store.js';
 import { seedDemo } from './seed/demo.js';
+import { TransferService } from './transfer/service.js';
 
 export interface CoreOptions {
   config: Config;
@@ -71,6 +72,11 @@ export function createCore(opts: CoreOptions) {
     (fn) => prefs.write(fn),
   );
 
+  const transfer = new TransferService(
+    { store, folders, ai, config, log: log.child({ module: 'transfer' }) },
+    (fn) => prefs.write(fn),
+  );
+
   async function bootstrap(options: { owner: boolean }): Promise<void> {
     await waitForQdrant(qdrant, log);
     for (;;) {
@@ -103,6 +109,7 @@ export function createCore(opts: CoreOptions) {
     folders,
     prefs,
     hygiene,
+    transfer,
     dataDir,
     bootstrap,
     exportMarkdown,

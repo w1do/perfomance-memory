@@ -14,6 +14,7 @@ try {
   await app.listen({ host: '0.0.0.0', port: PORT });
   const shutdown = async () => {
     await app.close();
+    await core.prefs.drain();
     process.exit(0);
   };
   process.on('SIGTERM', shutdown);

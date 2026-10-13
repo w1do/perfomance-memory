@@ -70,6 +70,7 @@ export type IconName =
   | 'check'
   | 'clock'
   | 'download'
+  | 'upload'
   | 'server'
   | 'lock'
   | 'logout';

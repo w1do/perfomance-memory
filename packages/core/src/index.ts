@@ -25,6 +25,20 @@ export { Store } from './qdrant/store.js';
 export { tokenize } from './text/tokenize.js';
 export { canonicalTarget, detectTargets, targetMentioned } from './text/targets.js';
 export { HygieneService } from './preferences/hygiene.js';
+export { TransferService } from './transfer/service.js';
+export {
+  IMPORT_MAX_BYTES,
+  SCHEMA_FORMAT,
+  SCHEMA_VERSION,
+  exportInputSchema,
+  importSelectionSchema,
+  type ExportInput,
+  type ImportReport,
+  type ImportSelection,
+  type SchemaPackage,
+} from './transfer/format.js';
+export type { ImportPreview } from './transfer/preview.js';
+export type { ImportNode, ImportItem } from './transfer/tree.js';
 export type { Placement, PlacementMove, PlaceResult } from './preferences/placement.js';
 export type { DuplicateGroup } from './preferences/duplicates.js';
 export { bm25Document, bm25Query } from './text/bm25.js';

@@ -49,7 +49,7 @@ export interface Preference extends Rationale {
   folder_path: string[];
   folder_ancestors: string[];
   folder_depth: number;
-  source: 'voice' | 'text' | 'mcp';
+  source: 'voice' | 'text' | 'mcp' | 'import';
   is_active: boolean;
   distinct_from: string[];
   history: HistoryEntry[];

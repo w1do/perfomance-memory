@@ -22,7 +22,7 @@ export const PATH_SEPARATOR = '/';
 export const polaritySchema = z.enum(['like', 'dislike']);
 export type Polarity = z.infer<typeof polaritySchema>;
 
-export const sourceSchema = z.enum(['voice', 'text', 'mcp']);
+export const sourceSchema = z.enum(['voice', 'text', 'mcp', 'import']);
 export type Source = z.infer<typeof sourceSchema>;
 
 export const domainSchema = z

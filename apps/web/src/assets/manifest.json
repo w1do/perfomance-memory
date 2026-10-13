@@ -260,6 +260,16 @@
     "caption": "Экспорт — файл со стрелкой вниз"
   },
   {
+    "key": "upload",
+    "kind": "icon",
+    "file": "icons/upload.svg",
+    "warehousePath": "icons/termicons/SVG/User Interface/Line/file upload ou-lc.svg",
+    "set": "termicons-line",
+    "style": "line-black",
+    "mask_ready": true,
+    "caption": "Импорт — файл со стрелкой вверх"
+  },
+  {
     "key": "lock",
     "kind": "icon",
     "file": "icons/lock.svg",

@@ -2,28 +2,25 @@
  * Сохранение обогащённого правила: только проект → папка проекта; иначе проверка конфликта и одно из трёх —
  * дубль (обновить дату, усилить уровень, дополнить «почему»), конфликт (обновить, прежняя версия в history, при смене полярности — соседний
  * лист), новое (создать). Лист «Люблю»/«Не люблю» гарантирован withPolarityLeaf.
+ * Выполняется под замком записи: поиск дубля/конфликта и запись атомарны относительно других записей;
+ * черновик готовится заранее (draft.ts).
  */
 import { withPolarityLeaf } from '../folders/tree.js';
 import { LEVEL_STRENGTH, stricter } from '../level.js';
 import { bm25Document } from '../text/bm25.js';
-import {
-  PROJECTS_ROOT,
-  type Enrichment,
-  type PreferencePayload,
-  type SaveResult,
-  type Source,
-} from '../types.js';
+import { PROJECTS_ROOT, type PreferencePayload, type SaveResult, type Source } from '../types.js';
 import { findConflict } from './conflict.js';
+import type { Draft } from './draft.js';
 import { upsertWithVectors, type PrefDeps } from './deps.js';
 import { constraintMetrics } from './normalize.js';
 import { buildPayload, embeddingText, folderFields, snapshot } from './payload.js';
 
 export async function saveEnrichment(
   deps: PrefDeps,
-  e: Enrichment,
-  rawText: string,
+  draft: Draft,
   source: Source,
 ): Promise<SaveResult> {
+  const { enrichment: e, rawText, text: draftText, dense } = draft;
   const { folders, log } = deps;
   if (e.kind === 'project_only') {
     const name = e.project ?? e.folder_path[e.folder_path.length - 1] ?? '';
@@ -32,9 +29,6 @@ export async function saveEnrichment(
     return { action: 'project_created', preference: null, folder };
   }
 
-  const draftText = embeddingText(e);
-  const [draftDense] = await deps.ai.embed([draftText]);
-  const dense = draftDense as number[];
   const { decision, target } = await findConflict(deps, e, rawText, dense, draftText);
   const now = new Date().toISOString();
 

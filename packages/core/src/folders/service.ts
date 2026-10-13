@@ -1,7 +1,7 @@
-import { randomUUID } from 'node:crypto';
 import type { AiProvider } from '../ai/provider.js';
 import type { Store } from '../qdrant/store.js';
 import { PROJECTS_ROOT, folderNameSchema, type FolderNode, type FolderPayload } from '../types.js';
+import { newFolderPayload } from './payload.js';
 import { ancestorsOf, buildTree, findNode, flattenTree, joinPath, sameName } from './tree.js';
 
 export class FolderError extends Error {
@@ -73,27 +73,6 @@ export class FolderService {
     );
   }
 
-  private newFolder(
-    name: string,
-    parent: FolderPayload | null,
-    domain: string | null,
-    description: string | null,
-  ): FolderPayload {
-    const path = parent ? [...parent.path, name] : [name];
-    return {
-      id: randomUUID(),
-      name,
-      parent_id: parent?.id ?? null,
-      path,
-      ancestors: ancestorsOf(path),
-      depth: path.length,
-      domain,
-      description,
-      preference_count: 0,
-      created_at: new Date().toISOString(),
-    };
-  }
-
   /** Returns the folder at `path`, creating missing levels. Existing names match case-insensitively. */
   async ensurePath(
     path: string[],
@@ -114,7 +93,7 @@ export class FolderService {
         continue;
       }
       const isProjectsRoot = parent === null && sameName(name, PROJECTS_ROOT);
-      const folder = this.newFolder(name, parent, isProjectsRoot ? 'project' : domain, null);
+      const folder = newFolderPayload(name, parent, isProjectsRoot ? 'project' : domain, null);
       all.push(folder);
       created.push(folder);
       parent = folder;
@@ -132,7 +111,7 @@ export class FolderService {
     if (all.some((f) => f.parent_id === parentId && sameName(f.name, name))) {
       throw new FolderError('Папка с таким именем уже есть', 409);
     }
-    const folder = this.newFolder(
+    const folder = newFolderPayload(
       name,
       parent ?? null,
       input.domain ?? parent?.domain ?? null,

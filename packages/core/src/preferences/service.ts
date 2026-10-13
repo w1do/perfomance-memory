@@ -1,7 +1,8 @@
 /**
  * Сервис правил: превью (обогащение без сохранения), сохранение, ручная правка, удаление и чтение.
- * Записи идут под мьютексом процесса, после каждой — пересчёт счётчиков папок и пересборка PREFERENCES.md.
- * Логика вынесена: save.ts (конвейер), conflict.ts, query.ts, schemas.ts.
+ * Обогащение и эмбеддинг идут вне замка, поиск дубля и запись — под мьютексом процесса; счётчики папок и
+ * PREFERENCES.md обновляются коалесцированно (refresh.ts).
+ * Логика вынесена: save.ts (конвейер), draft.ts (черновик), conflict.ts, query.ts, schemas.ts.
  */
 import type { AiProvider } from '../ai/provider.js';
 import type { Config } from '../env.js';
@@ -17,9 +18,11 @@ import {
 } from '../types.js';
 import type { PrefDeps } from './deps.js';
 import { Mutex } from './mutex.js';
+import { prepareDraft, type Draft } from './draft.js';
 import { normalizeEnrichment } from './normalize.js';
 import { previewText } from './preview.js';
 import { withExplicit } from './rationale.js';
+import { CoalescedRefresh } from './refresh.js';
 import { getOrThrow, updatePreference } from './update.js';
 import * as q from './query.js';
 import { saveEnrichment } from './save.js';
@@ -38,26 +41,46 @@ export { FolderError };
 export class PreferenceService {
   private readonly lock = new Mutex();
   private readonly deps: PrefDeps;
+  private readonly refresh: CoalescedRefresh;
 
   constructor(
     store: Store,
-    private readonly folders: FolderService,
+    folders: FolderService,
     ai: AiProvider,
     config: Config,
     log: Logger,
-    private readonly onChange: () => Promise<void>,
+    onChange: () => Promise<void>,
   ) {
     this.deps = { store, folders, ai, config, log };
+    this.refresh = new CoalescedRefresh(async () => {
+      await folders.recount();
+      await onChange();
+    }, log);
   }
 
-  /** Runs a write under the process lock and refreshes counters and the main file afterwards. */
-  write<T>(fn: () => Promise<T>): Promise<T> {
-    return this.lock.run(async () => {
-      const result = await fn();
-      await this.folders.recount();
-      await this.onChange();
-      return result;
+  /**
+   * Запись под замком процесса. Счётчики папок и PREFERENCES.md обновляются коалесцированно вне замка;
+   * промис резолвится после обновления, которое уже видит эту запись.
+   */
+  async write<T>(fn: () => Promise<T>): Promise<T> {
+    let refreshed: Promise<void> = Promise.resolve();
+    const result = await this.lock.run(async () => {
+      const r = await fn();
+      refreshed = this.refresh.request();
+      return r;
     });
+    await refreshed;
+    return result;
+  }
+
+  /**
+   * Graceful shutdown: ждёт записи в очереди замка и последнее обновление счётчиков и PREFERENCES.md.
+   * save() в фазе подготовки (превью, эмбеддинг — вне замка) не ждёт: хранилище она ещё не трогала,
+   * обрыв на process.exit не оставляет частичной записи — правило просто не сохранится.
+   */
+  async drain(): Promise<void> {
+    await this.lock.run(async () => undefined);
+    await this.refresh.drain();
   }
 
   /** Enrichment without saving (preview.ts): folder tree + top-3 similar folders go to the model. */
@@ -65,17 +88,20 @@ export class PreferenceService {
     return previewText(this.deps, text, projectHint);
   }
 
-  save(input: SaveInput): Promise<SaveResult> {
-    return this.write(async () => {
-      if (input.preview) {
-        const e = normalizeEnrichment(input.preview.enrichment);
-        return saveEnrichment(this.deps, e, input.preview.text.trim(), input.source);
-      }
-      if (!input.text?.trim()) throw new PreferenceError('Нужен text или preview', 400);
-      const p = await this.preview(input.text, input.projectHint);
-      const e = withExplicit(p.enrichment, input.explicit);
-      return saveEnrichment(this.deps, e, p.text, input.source);
-    });
+  /** Обогащение и эмбеддинг — вне замка (параллельно); поиск дубля/конфликта и запись — под замком. */
+  async save(input: SaveInput): Promise<SaveResult> {
+    const draft = await this.draft(input);
+    return this.write(() => saveEnrichment(this.deps, draft, input.source));
+  }
+
+  private async draft(input: SaveInput): Promise<Draft> {
+    if (input.preview) {
+      const e = normalizeEnrichment(input.preview.enrichment);
+      return prepareDraft(this.deps, e, input.preview.text.trim());
+    }
+    if (!input.text?.trim()) throw new PreferenceError('Нужен text или preview', 400);
+    const p = await this.preview(input.text, input.projectHint);
+    return prepareDraft(this.deps, withExplicit(p.enrichment, input.explicit), p.text);
   }
 
   get(id: string): Promise<PreferencePayload> {

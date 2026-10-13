@@ -21,10 +21,13 @@ export function ancestorsOf(path: string[]): string[] {
   return path.map((_, i) => joinPath(path.slice(0, i + 1)));
 }
 
+/** Normal form of a folder name: case, ё/е and extra spaces ignored. */
+export const normName = (s: string): string =>
+  s.trim().toLowerCase().replace(/ё/g, 'е').replace(/\s+/g, ' ');
+
 /** Case/ё-insensitive name comparison used to match existing folders. */
 export function sameName(a: string, b: string): boolean {
-  const norm = (s: string) => s.trim().toLowerCase().replace(/ё/g, 'е').replace(/\s+/g, ' ');
-  return norm(a) === norm(b);
+  return normName(a) === normName(b);
 }
 
 export function polarityFolderName(polarity: Polarity): string {

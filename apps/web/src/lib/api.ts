@@ -10,6 +10,13 @@ import type {
   Stats,
   Status,
 } from './types';
+import type {
+  ExportRequest,
+  ImportPreview,
+  ImportReport,
+  ImportSelection,
+  SchemaPackageFile,
+} from './schemaTypes';
 
 export class ApiError extends Error {
   constructor(
@@ -103,4 +110,10 @@ export const api = {
   place: (moves: { id: string; to: string[]; domain: string }[]) =>
     request<{ moved: number; folders_removed: number }>('POST', '/api/hygiene/place', { moves }),
   exportMd: (folder?: string) => request<string>('GET', `/api/export.md${qs({ folder })}`),
+  exportSchema: (body: ExportRequest) =>
+    request<SchemaPackageFile>('POST', '/api/export/schema', body),
+  importPreview: (pkg: unknown) =>
+    request<ImportPreview>('POST', '/api/import/schema/preview', { package: pkg }),
+  importApply: (pkg: unknown, selection: ImportSelection) =>
+    request<ImportReport>('POST', '/api/import/schema/apply', { package: pkg, selection }),
 };

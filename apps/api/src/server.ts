@@ -9,6 +9,7 @@ import { hygieneRoutes } from './routes/hygiene.js';
 import { metaRoutes, type MetaOptions } from './routes/meta.js';
 import { preferenceRoutes } from './routes/preferences.js';
 import { transcribeRoutes } from './routes/transcribe.js';
+import { transferRoutes } from './routes/transfer.js';
 
 export async function buildServer(core: Core, opts: MetaOptions): Promise<FastifyInstance> {
   const app = Fastify({
@@ -27,5 +28,6 @@ export async function buildServer(core: Core, opts: MetaOptions): Promise<Fastif
   preferenceRoutes(app, core);
   folderRoutes(app, core);
   hygieneRoutes(app, core);
+  transferRoutes(app, core);
   return app;
 }

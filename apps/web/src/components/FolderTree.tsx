@@ -7,6 +7,7 @@ import { api } from '../lib/api';
 import type { FolderNode } from '../lib/types';
 import { DRAG_FOLDER, TreeNode, type TreeActions } from './folders/TreeNode';
 import { Icon } from './Icon';
+import { SchemaActions } from './schema/SchemaActions';
 import { DRAG_PREFERENCE } from './PreferenceCard';
 import { useToast } from './Toasts';
 import { Card } from './ui/Card';
@@ -106,6 +107,7 @@ export function FolderTree({ tree, selected, onSelect, onOpenMainFile }: Props) 
               <Icon name="plus" />
             </button>
           </div>
+          <SchemaActions tree={tree} />
           {list(topics)}
           {projects && (
             <>
